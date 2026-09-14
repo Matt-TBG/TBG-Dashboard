@@ -42,6 +42,40 @@
             opacity: 0.9;
         }
 
+        /* Form styling for adding new items */
+        .input-bar {
+            max-width: 1400px;
+            margin: 0 auto 30px auto;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-bar input, .input-bar select, .input-bar button {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+
+        .input-bar input { flex: 2; min-width: 200px; }
+        .input-bar select { flex: 1; min-width: 150px; }
+        .input-bar button { 
+            flex: 1; 
+            min-width: 120px; 
+            background-color: var(--primary-color); 
+            color: white; 
+            font-weight: bold; 
+            cursor: pointer;
+            border: none;
+        }
+        .input-bar button:hover { background-color: #1b5e20; }
+
         .dashboard-container {
             display: flex;
             gap: 20px;
@@ -55,7 +89,6 @@
             border-radius: 8px;
         }
 
-        /* Distinct background tint & border for each column type */
         .column-todo {
             background: #e8f5e9;
             border: 1px solid #c8e6c9;
@@ -94,7 +127,6 @@
             transition: opacity 0.4s ease, transform 0.4s ease;
         }
 
-        /* Border highlights per column */
         .todo-card { border-left: 5px solid #2e7d32; }
         .updates-card { border-left: 5px solid #0277bd; }
         .shopping-card { border-left: 5px solid #ef6c00; }
@@ -131,7 +163,6 @@
             transition: background 0.2s;
         }
 
-        /* Button Colors */
         .todo-btn { background-color: #2e7d32; }
         .todo-btn:hover { background-color: #1b5e20; }
 
@@ -141,7 +172,6 @@
         .shopping-btn { background-color: #ef6c00; }
         .shopping-btn:hover { background-color: #e65100; }
 
-        /* Responsive design for mobile/tablets */
         @media (max-width: 900px) {
             .dashboard-container {
                 flex-direction: column;
@@ -156,100 +186,122 @@
         <p>Dashboard (Demo Version)</p>
     </div>
 
+    <!-- NEW ITEM INPUT BAR -->
+    <div class="input-bar">
+        <input type="text" id="property-input" placeholder="Property Name (e.g. Beard, Oreck)">
+        <input type="text" id="task-input" placeholder="Details/Description...">
+        <select id="column-select">
+            <option value="todo">📋 Property To-Do's</option>
+            <option value="updates">📢 Property Updates</option>
+            <option value="shopping">🛒 Shopping List</option>
+        </select>
+        <button onclick="addItem()">➕ Add Item</button>
+    </div>
+
     <div class="dashboard-container">
         
         <!-- TO-DO COLUMN -->
         <div class="column column-todo">
             <h2>📋 Property To-Do's</h2>
-            
-            <div class="task-card todo-card">
-                <div class="task-details">
-                    <div class="property-name">Beard</div>
-                    <div class="task-text">Requested zinnias in front planters</div>
-                </div>
-                <button class="done-btn todo-btn" onclick="removeCard(this)">✔ Mark Done</button>
-            </div>
-
-            <div class="task-card todo-card">
-                <div class="task-details">
-                    <div class="property-name">Zeiglerova</div>
-                    <div class="task-text">Asked us to take trash cans out this Tuesday</div>
-                </div>
-                <button class="done-btn todo-btn" onclick="removeCard(this)">✔ Mark Done</button>
-            </div>
-            
+            <div id="todo-container"></div>
         </div>
 
         <!-- UPDATES COLUMN -->
         <div class="column column-updates">
             <h2>📢 Property Updates</h2>
-            
-            <div class="task-card updates-card">
-                <div class="task-details">
-                    <div class="property-name">Centeno</div>
-                    <div class="task-text">Jenn requested we prune boxwoods every visit.</div>
-                </div>
-                <button class="done-btn updates-btn" onclick="removeCard(this)">✔ Acknowledge</button>
-            </div>
-
-            <div class="task-card updates-card">
-                <div class="task-details">
-                    <div class="property-name">McIntyre</div>
-                    <div class="task-text">North pool bed Manzanita dying</div>
-                </div>
-                <button class="done-btn updates-btn" onclick="removeCard(this)">✔ Acknowledge</button>
-            </div>
-            
+            <div id="updates-container"></div>
         </div>
 
         <!-- SHOPPING LIST COLUMN -->
         <div class="column column-shopping">
             <h2>🛒 Shopping List</h2>
-            
-            <div class="task-card shopping-card">
-                <div class="task-details">
-                    <div class="property-name">Bruck</div>
-                    <div class="task-text">Root and bloom</div>
-                </div>
-                <button class="done-btn shopping-btn" onclick="removeCard(this)">✔ Purchased</button>
-            </div>
-
-            <div class="task-card shopping-card">
-                <div class="task-details">
-                    <div class="property-name">Oreck</div>
-                    <div class="task-text">6 bags of compost</div>
-                </div>
-                <button class="done-btn shopping-btn" onclick="removeCard(this)">✔ Purchased</button>
-            </div>
-
-            <div class="task-card shopping-card">
-                <div class="task-details">
-                    <div class="property-name">Dubofsky</div>
-                    <div class="task-text">Root stim</div>
-                </div>
-                <button class="done-btn shopping-btn" onclick="removeCard(this)">✔ Purchased</button>
-            </div>
-            
+            <div id="shopping-container"></div>
         </div>
 
     </div>
 
     <script>
-        function removeCard(buttonElement) {
-            const card = buttonElement.closest('.task-card');
+        // 1. PLACE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE 👇
+        const API_URL = "https://script.google.com/a/macros/tierrabellagardens.com/s/AKfycbxyNadSVnqthDHBR1MjEmWuIips4m0a8fbTeiGidxggACTmbC67lazHdmWBHnybR9zm/exec";
+
+        // Fetch and load data automatically when the dashboard opens
+        async function loadDashboard() {
+            if (API_URL === "https://script.google.com/a/macros/tierrabellagardens.com/s/AKfycbxyNadSVnqthDHBR1MjEmWuIips4m0a8fbTeiGidxggACTmbC67lazHdmWBHnybR9zm/exec") return;
             
+            try {
+                const response = await fetch(API_URL);
+                const items = await response.json();
+                
+                // Clear the layout columns before inserting updated data
+                document.getElementById('todo-container').innerHTML = '';
+                document.getElementById('updates-container').innerHTML = '';
+                document.getElementById('shopping-container').innerHTML = '';
+
+                // Loop through your list items and place them into columns based on their type
+                items.forEach(item => {
+                    const cardHtml = `
+                        <div class="task-card ${item.type}-card">
+                            <div class="task-details">
+                                <div class="property-name">${item.property}</div>
+                                <div class="task-text">${item.text}</div>
+                            </div>
+                            <button class="done-btn ${item.type}-btn" onclick="removeCard(this, '${item.id}')">✔ Complete</button>
+                        </div>
+                    `;
+
+                    if (item.type === 'todo') document.getElementById('todo-container').innerHTML += cardHtml;
+                    if (item.type === 'updates') document.getElementById('updates-container').innerHTML += cardHtml;
+                    if (item.type === 'shopping') document.getElementById('shopping-container').innerHTML += cardHtml;
+                });
+            } catch (error) {
+                console.error("Error loading dashboard data:", error);
+            }
+        }
+
+        // Send a newly submitted row from the form down to Google Sheets
+        async function addItem() {
+            const property = document.getElementById('property-input').value.trim();
+            const text = document.getElementById('task-input').value.trim();
+            const type = document.getElementById('column-select').value;
+
+            if (!property || !text) {
+                alert("Please fill out both the Property Name and Details.");
+                return;
+            }
+
+            const payload = {
+                action: 'add',
+                property: property,
+                text: text,
+                type: type
+            };
+
+            // Reset UI input fields immediately
+            document.getElementById('property-input').value = '';
+            document.getElementById('task-input').value = '';
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                // Reload dashboard UI after a small delay for sheet indexing
+                setTimeout(loadDashboard, 1500);
+            } catch (error) {
+                console.error("Error saving item:", error);
+            }
+        }
+
+        // Remove card from UI and flag it inside the Google Sheet data pipeline
+        async function removeCard(buttonElement, itemId) {
+            const card = buttonElement.closest('.task-card');
             buttonElement.innerText = "Processing...";
             buttonElement.style.backgroundColor = "#888";
-            
-            setTimeout(() => {
-                card.style.opacity = '0';
-                card.style.transform = 'scale(0.95)';
-                
-                setTimeout(() => {
-                    card.remove();
-                }, 400);
-            }, 300);
-        }
-    </script>
-</body>
-</html>
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
