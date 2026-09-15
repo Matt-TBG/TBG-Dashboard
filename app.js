@@ -1,49 +1,105 @@
 // 1. YOUR GOOGLE APPS SCRIPT WEB APP URL (Must end in /exec)
 const API_URL = "https://script.google.com/macros/s/AKfycbyOm02wepjqjwNJua6Jv8fgIAYCv86EjmhuvKbllPDd2_9Cri2i4rF5lbb3sosJZI3yRQ/exec";
 
-// FRONTEND INTERACTIVE TAB NAVIGATOR TOGGLE
-function openTab(evt, tabName) {
+// Master list arrays cached locally for interface filters
+let globalProperties = [];
+let activeSubTabs = { projects: "proj-oneoff", shopping: "shop-crew" };
+
+// MAIN PARENT TAB NAVIGATION ROUTING
+function openMainTab(evt, tabName) {
     const tabcontents = document.getElementsByClassName("tab-content");
-    for (let i = 0; i < tabcontents.length; i++) {
-        tabcontents[i].style.display = "none";
-    }
+    for (let i = 0; i < tabcontents.length; i++) tabcontents[i].style.display = "none";
+    
     const tablinks = document.getElementsByClassName("tab-link");
-    for (let i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
+    for (let i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
+    
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
+    
+    // Close dropdown drawers globally on view migration shifts
+    closeAllCombos();
 }
 
-// DATA RECEIVER 1: POPULATES DYNAMIC AUTOCOMPLETE DROPDOWN OPTIONS
-function handlePropertyOptions(properties) {
-    try {
-        const datalist = document.getElementById('properties-dataset');
-        if (!datalist) return;
-        
-        // Render property item block strings
-        datalist.innerHTML = properties.map(prop => `<option value="${prop}"></option>`).join('');
-    } catch (error) {
-        console.error("Error setting up filter list:", error);
+// NESTED CHILD SUB-TAB NAVIGATION ROUTING
+function openSubTab(evt, parentId, subTabId) {
+    const parentContainer = document.getElementById(parentId);
+    const subContents = parentContainer.getElementsByClassName("sub-tab-content");
+    for (let i = 0; i < subContents.length; i++) subContents[i].style.display = "none";
+    
+    const subLinks = parentContainer.getElementsByClassName("sub-tab-link");
+    for (let i = 0; i < subLinks.length; i++) subLinks[i].className = subLinks[i].className.replace(" active", "");
+    
+    document.getElementById(subTabId).style.display = "block";
+    evt.currentTarget.className += " active";
+    activeSubTabs[parentId] = subTabId;
+}
+
+// SEARCHABLE COMBOBOX CONTROLLER TRIGGERS
+function toggleCombo(inputEl) {
+    closeAllCombos();
+    const dropdown = inputEl.parentElement.querySelector(".combo-dropdown");
+    dropdown.style.display = "block";
+    renderComboItems(dropdown, globalProperties, inputEl);
+}
+
+function arrowToggleCombo(btnEl, event) {
+    event.stopPropagation();
+    const input = btnEl.parentElement.querySelector(".combo-input");
+    toggleCombo(input);
+}
+
+function filterCombo(inputEl) {
+    const dropdown = inputEl.parentElement.querySelector(".combo-dropdown");
+    const val = inputEl.value.toLowerCase().trim();
+    const filtered = globalProperties.filter(p => p.toLowerCase().includes(val));
+    renderComboItems(dropdown, filtered, inputEl);
+}
+
+function renderComboItems(dropdown, list, inputEl) {
+    if(list.length === 0) {
+        dropdown.innerHTML = '<div class="combo-item" style="color:#888; font-style:italic;">No matches found</div>';
+        return;
     }
+    dropdown.innerHTML = list.map(item => `<div class="combo-item" onclick="selectComboItem('${item}', '${inputEl.id}')">${item}</div>`).join('');
 }
 
-// DATA RECEIVER 2: PROCESSES 6 CATEGORIES & OVERVIEW FEED
+function selectComboItem(value, inputId) {
+    const input = document.getElementById(inputId);
+    input.value = value;
+    closeAllCombos();
+}
+
+function closeAllCombos() {
+    const drawers = document.getElementsByClassName("combo-dropdown");
+    for(let i=0; i<drawers.length; i++) drawers[i].style.display = "none";
+}
+
+// Global click event to snap dropdown drawers shut when users click off canvas boundaries
+document.addEventListener("click", function(e) {
+    if(!e.target.closest(".combobox-wrapper")) closeAllCombos();
+});
+
+// JSONP INBOUND RECEIVERS
+function handlePropertyOptions(properties) {
+    globalProperties = properties;
+}
+
 function handleSheetData(items) {
     try {
-        const types = ['oneoff', 'issue', 'currentproject', 'bigproject', 'walkthrough', 'shopping'];
-        const counts = { oneoff: 0, issue: 0, currentproject: 0, bigproject: 0, walkthrough: 0, shopping: 0 };
+        const subCategories = ['overview', 'proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'walkthrough', 'shop-crew', 'shop-steph'];
+        const counts = { projects: 0, walkthrough: 0, shopping: 0 };
         
-        types.forEach(t => document.getElementById(`${t}-container`).innerHTML = '');
+        subCategories.forEach(c => {
+            const el = document.getElementById(`${c}-container`);
+            if(el) el.innerHTML = '';
+        });
         document.getElementById('urgent-stream-container').innerHTML = '';
 
-        let urgentCardsHtml = '';
-        let urgentCount = 0;
+        let overviewCount = 0;
+        let overviewHtml = '';
 
         items.forEach(item => {
             const cleanId = item.id || Math.random().toString(36).substring(2, 9);
-            if (counts[item.type] !== undefined) counts[item.type]++;
-
             const cardHtml = `
                 <div class="task-card ${item.type}-card" id="card-${cleanId}">
                     <div class="task-details">
@@ -54,99 +110,82 @@ function handleSheetData(items) {
                 </div>
             `;
 
+            // Sort out count arrays metrics dynamically
+            if (item.type.startsWith('proj-')) counts.projects++;
+            if (item.type === 'walkthrough') counts.walkthrough++;
+            if (item.type.startsWith('shop-')) counts.shopping++;
+
             const container = document.getElementById(`${item.type}-container`);
             if (container) container.innerHTML += cardHtml;
 
-            if ((item.type === 'issue' || urgentCount < 3) && item.type !== 'shopping') {
-                urgentCardsHtml += cardHtml;
-                urgentCount++;
+            // Overview priorities rule: pull overview items, walkthroughs, or the top items down to dashboard
+            if (item.type === 'overview' || item.type === 'walkthrough' || overviewCount < 3) {
+                if (item.type !== 'shop-crew' && item.type !== 'shop-steph') {
+                    overviewHtml += cardHtml;
+                    overviewCount++;
+                }
             }
         });
 
-        types.forEach(t => {
-            document.getElementById(`count-${t}`).innerText = counts[t];
-            const container = document.getElementById(`${t}-container`);
-            if (counts[t] === 0 && container) {
-                container.innerHTML = '<div class="loading-placeholder">No active items in this category.</div>';
+        // Set navbar counters
+        document.getElementById('count-projects').innerText = counts.projects;
+        document.getElementById('count-walkthrough').innerText = counts.walkthrough;
+        document.getElementById('count-shopping').innerText = counts.shopping;
+
+        // Visual placeholders checks
+        subCategories.forEach(c => {
+            const container = document.getElementById(`${c}-container`);
+            if(container && container.innerHTML === '') {
+                container.innerHTML = '<div class="loading-placeholder">No active items inside this register.</div>';
             }
         });
-
-        document.getElementById('urgent-stream-container').innerHTML = urgentCardsHtml || 
-            '<div class="loading-placeholder">System clear! No urgent items requiring priority attention.</div>';
+        
+        document.getElementById('urgent-stream-container').innerHTML = overviewHtml || 
+            '<div class="loading-placeholder">Dashboard operational clear. No tasks pending.</div>';
 
     } catch (error) {
-        console.error("Error organizing tab array collections:", error);
+        console.error("Layout routing fault trace:", error);
     }
 }
 
-// MAIN PULL LOADING CONTROLLER: TRIGGERS BOTH DYNAMIC FETCH CHANNELS
 function loadDashboard() {
     if (!API_URL || API_URL === "") return;
     
-    // 1. Trigger background script tag to pull live properties data tab mapping list
-    const oldPropScript = document.getElementById('jsonp-properties-script');
-    if (oldPropScript) oldPropScript.remove();
-    
     const propScript = document.createElement('script');
-    propScript.id = 'jsonp-properties-script';
     propScript.src = `${API_URL}?getData=properties&callback=handlePropertyOptions&nocache=${Date.now()}`;
     document.body.appendChild(propScript);
-
-    // 2. Trigger active task load script blocks
-    const types = ['oneoff', 'issue', 'currentproject', 'bigproject', 'walkthrough', 'shopping'];
-    types.forEach(t => {
-        const container = document.getElementById(`${t}-container`);
-        if (container) container.innerHTML = '<div class="loading-placeholder">Syncing data...</div>';
-    });
-
-    const oldScript = document.getElementById('jsonp-script');
-    if (oldScript) oldScript.remove();
 
     const cacheWindow = Math.round(Date.now() / 5000);
     const script = document.createElement('script');
     script.id = 'jsonp-script';
     script.src = `${API_URL}?getData=tasks&callback=handleSheetData&nocache=${cacheWindow}`;
-    
     document.body.appendChild(script);
 }
 
-// WRITE DATA SUBMISSIONS ROUTING PAYLOAD DOWN TO GOOGLE SHEETS
-async function addItem() {
-    const property = document.getElementById('property-input').value.trim();
-    const text = document.getElementById('task-input').value.trim();
-    const type = document.getElementById('column-select').value;
+// ROUTE SPECIFIC INTERNAL TAB ACTIONS SUBMISSIONS
+function addCustomItem(typeKey, propInputId, textInputId) {
+    executeFormPost(typeKey, propInputId, textInputId);
+}
+
+function addContextualItem(parentTabKey, propInputId, textInputId) {
+    const contextualType = activeSubTabs[parentTabKey]; // Resolves active filter subtab (e.g., 'proj-current')
+    executeFormPost(contextualType, propInputId, textInputId);
+}
+
+async function executeFormPost(targetType, propId, textId) {
+    const property = document.getElementById(propId).value.trim();
+    const text = document.getElementById(textId).value.trim();
 
     if (!property || !text) {
-        alert("Please specify the Property and Task text.");
+        alert("Please complete both properties and tasks descriptions fields.");
         return;
     }
 
     const cleanId = Math.random().toString(36).substring(2, 9);
-    const payload = { action: 'add', id: cleanId, property: property, text: text, type: type };
+    const payload = { action: 'add', id: cleanId, property: property, text: text, type: targetType };
 
-    document.getElementById('property-input').value = '';
-    document.getElementById('task-input').value = '';
-
-    // Wipe autocomplete input focus state natively after submission to clean mobile keyboard layouts
-    document.activeElement.blur();
-
-    const targetContainerId = `${type}-container`;
-    const cardHtml = `
-        <div class="task-card ${type}-card" id="card-${cleanId}">
-            <div class="task-details">
-                <div class="property-name">${property}</div>
-                <div class="task-text">${text}</div>
-            </div>
-            <button class="done-btn" onclick="removeCard(this, '${cleanId}')">Complete</button>
-        </div>
-    `;
-    
-    const currentUiHtml = document.getElementById(targetContainerId).innerHTML;
-    if (currentUiHtml.includes("loading-placeholder") || currentUiHtml.includes("Loading")) {
-        document.getElementById(targetContainerId).innerHTML = cardHtml;
-    } else {
-        document.getElementById(targetContainerId).innerHTML += cardHtml;
-    }
+    document.getElementById(propId).value = '';
+    document.getElementById(textId).value = '';
 
     try {
         await fetch(API_URL, {
@@ -157,18 +196,14 @@ async function addItem() {
         });
         setTimeout(loadDashboard, 1500);
     } catch (error) {
-        console.error("Transmission fault:", error);
+        console.error("Posting array error:", error);
     }
 }
 
-// REMOVE ROW ITEM INSTANTLY WITH A TRANSITION EXIT ANIMATION EFFECT
 async function removeCard(buttonElement, itemId) {
     const card = buttonElement.closest('.task-card');
     buttonElement.innerText = "Syncing...";
-    buttonElement.style.backgroundColor = "#888";
-
     card.style.opacity = '0';
-    card.style.transform = 'scale(0.96)';
     setTimeout(() => card.remove(), 400);
 
     try {
@@ -179,9 +214,8 @@ async function removeCard(buttonElement, itemId) {
             body: JSON.stringify({ action: 'delete', id: itemId })
         });
     } catch (error) {
-        console.error("Removal verification failure:", error);
+        console.error("Delete sequence trace error:", error);
     }
 }
 
-// Boot setup
 loadDashboard();
