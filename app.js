@@ -1,5 +1,5 @@
 // 1. YOUR GOOGLE APPS SCRIPT WEB APP URL (Must end in /exec)
-const API_URL = "https://google.com";
+const API_URL = "https://script.google.com/macros/s/AKfycbyOm02wepjqjwNJua6Jv8fgIAYCv86EjmhuvKbllPDd2_9Cri2i4rF5lbb3sosJZI3yRQ/exec";
 
 // FRONTEND INTERACTIVE TAB NAVIGATOR TOGGLE
 function openTab(evt, tabName) {
