@@ -1,0 +1,164 @@
+:root {
+    --primary-color: #2e7d32;
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-main: #333333;
+    --text-muted: #666666;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    padding: 25px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.2em;
+}
+
+.header p {
+    margin: 0;
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.input-bar {
+    max-width: 1400px;
+    margin: 0 auto 30px auto;
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.input-bar input, .input-bar select, .input-bar button {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+}
+
+.input-bar input { flex: 2; min-width: 200px; }
+.input-bar select { flex: 1; min-width: 150px; }
+.input-bar button { 
+    flex: 1; 
+    min-width: 120px; 
+    background-color: var(--primary-color); 
+    color: white; 
+    font-weight: bold; 
+    cursor: pointer;
+    border: none;
+}
+.input-bar button:hover { background-color: #1b5e20; }
+
+.dashboard-container {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.column {
+    flex: 1;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.column-todo { background: #e8f5e9; border: 1px solid #c8e6c9; }
+.column-updates { background: #e1f5fe; border: 1px solid #b3e5fc; }
+.column-shopping { background: #fff3e0; border: 1px solid #ffe0b2; }
+
+.column h2 {
+    margin-top: 0;
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.column-todo h2 { color: #2e7d32; }
+.column-updates h2 { color: #0277bd; }
+.column-shopping h2 { color: #e65100; }
+
+.task-card {
+    background: var(--card-bg);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.todo-card { border-left: 5px solid #2e7d32; }
+.updates-card { border-left: 5px solid #0277bd; }
+.shopping-card { border-left: 5px solid #ef6c00; }
+
+.task-details {
+    flex-grow: 1;
+    padding-right: 15px;
+}
+
+.property-name {
+    display: inline-block;
+    background-color: #eeeeee;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+.task-text {
+    font-size: 1.05em;
+    line-height: 1.4;
+}
+
+.done-btn {
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.todo-btn { background-color: #2e7d32; }
+.todo-btn:hover { background-color: #1b5e20; }
+.updates-btn { background-color: #0277bd; }
+.updates-btn:hover { background-color: #01579b; }
+.shopping-btn { background-color: #ef6c00; }
+.shopping-btn:hover { background-color: #e65100; }
+
+.loading-placeholder {
+    color: #666;
+    font-style: italic;
+    padding: 10px;
+}
+
+@media (max-width: 900px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+}
