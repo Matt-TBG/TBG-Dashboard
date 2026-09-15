@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tierra Bella Gardens - Dashboard</title>
+    <title>Tierra Bella Gardens - Control Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,52 +13,113 @@
         <p>Operations Control Center</p>
     </div>
 
-    <!-- RESTRUCTURED COMPATIBLE INPUT BAR -->
-    <div class="input-bar">
-        <!-- The list attribute connects this input box to the dynamic autocomplete array below -->
-        <input type="text" id="property-input" list="properties-dataset" placeholder="Select or type property...">
-        <datalist id="properties-dataset">
-            <!-- JavaScript will automatically stream your Google Sheet locations right here -->
-        </datalist>
-        
-        <input type="text" id="task-input" placeholder="Details/Description...">
-        <select id="column-select">
-            <option value="oneoff">One Off Tasks</option>
-            <option value="issue">Property Issues</option>
-            <option value="currentproject">Current/Upcoming Projects</option>
-            <option value="bigproject">Big Projects</option>
-            <option value="walkthrough">Walk Throughs</option>
-            <option value="shopping">Shopping List</option>
-        </select>
-        <button onclick="addItem()">Add Item</button>
-    </div>
-
-    <!-- DYNAMIC NAVIGATION TABS MENU -->
+    <!-- MAIN HIGH LEVEL NAVIGATION TABS -->
     <div class="tabs-container">
-        <button class="tab-link active" onclick="openTab(event, 'summary')">Overview</button>
-        <button class="tab-link" onclick="openTab(event, 'oneoff')">One Offs <span id="count-oneoff" class="badge">0</span></button>
-        <button class="tab-link" onclick="openTab(event, 'issue')">Issues <span id="count-issue" class="badge-alert">0</span></button>
-        <button class="tab-link" onclick="openTab(event, 'currentproject')">Current Proj <span id="count-currentproject" class="badge">0</span></button>
-        <button class="tab-link" onclick="openTab(event, 'bigproject')">Big Proj <span id="count-bigproject" class="badge">0</span></button>
-        <button class="tab-link" onclick="openTab(event, 'walkthrough')">Walk Throughs <span id="count-walkthrough" class="badge">0</span></button>
-        <button class="tab-link" onclick="openTab(event, 'shopping')">Shopping <span id="count-shopping" class="badge">0</span></button>
+        <button class="tab-link active" onclick="openMainTab(event, 'summary')">Overview</button>
+        <button class="tab-link" onclick="openMainTab(event, 'projects')">Projects <span id="count-projects" class="badge">0</span></button>
+        <button class="tab-link" onclick="openMainTab(event, 'walkthrough')">Walk Throughs <span id="count-walkthrough" class="badge">0</span></button>
+        <button class="tab-link" onclick="openMainTab(event, 'shopping')">Shopping Lists <span id="count-shopping" class="badge">0</span></button>
     </div>
 
-    <!-- VIEW PANELS -->
     <div class="dashboard-container">
+        
+        <!-- 1. OVERVIEW VIEW PANEL -->
         <div id="summary" class="tab-content default-active">
-            <div class="summary-hero">
+            <div class="tab-header-block">
                 <h2>Operational Alert Stream</h2>
-                <p class="summary-subtext">Highest priority items requiring crew attention:</p>
-                <div id="urgent-stream-container"></div>
+                <p>Prioritized items requiring immediate attention:</p>
             </div>
+            
+            <!-- Quick Add form inside the Overview tab itself -->
+            <div class="inline-form">
+                <h4>Quick Logging Entry</h4>
+                <div class="form-row">
+                    <div class="combobox-wrapper">
+                        <input type="text" id="overview-prop" class="combo-input" placeholder="Select property..." onclick="toggleCombo(this)" oninput="filterCombo(this)">
+                        <button class="combo-arrow" onclick="arrowToggleCombo(this, event)">▼</button>
+                        <div class="combo-dropdown"></div>
+                    </div>
+                    <input type="text" id="overview-text" placeholder="General alert/to-do detail description...">
+                    <button class="action-btn" onclick="addCustomItem('overview', 'overview-prop', 'overview-text')">Log Alert</button>
+                </div>
+            </div>
+            <div id="urgent-stream-container"></div>
         </div>
-        <div id="oneoff" class="tab-content"><h2>One Off Tasks</h2><div id="oneoff-container"></div></div>
-        <div id="issue" class="tab-content"><h2>Property Issues</h2><div id="issue-container"></div></div>
-        <div id="currentproject" class="tab-content"><h2>Current &amp; Upcoming Projects</h2><div id="currentproject-container"></div></div>
-        <div id="bigproject" class="tab-content"><h2>Big Projects</h2><div id="bigproject-container"></div></div>
-        <div id="walkthrough" class="tab-content"><h2>Walk Through Sheets</h2><div id="walkthrough-container"></div></div>
-        <div id="shopping" class="tab-content"><h2>Shopping List</h2><div id="shopping-container"></div></div>
+
+        <!-- 2. PROJECTS TAB PANEL (WITH SUB-CATEGORIES) -->
+        <div id="projects" class="tab-content">
+            <div class="sub-tabs-bar">
+                <button class="sub-tab-link active" onclick="openSubTab(event, 'projects', 'proj-oneoff')">One-Off</button>
+                <button class="sub-tab-link" onclick="openSubTab(event, 'projects', 'proj-current')">Current</button>
+                <button class="sub-tab-link" onclick="openSubTab(event, 'projects', 'proj-upcoming')">Upcoming</button>
+                <button class="sub-tab-link" onclick="openSubTab(event, 'projects', 'proj-major')">Major</button>
+            </div>
+
+            <!-- Contextual Form for Projects Tab -->
+            <div class="inline-form">
+                <h4>Add Project Entry</h4>
+                <div class="form-row">
+                    <div class="combobox-wrapper">
+                        <input type="text" id="project-prop" class="combo-input" placeholder="Select property..." onclick="toggleCombo(this)" oninput="filterCombo(this)">
+                        <button class="combo-arrow" onclick="arrowToggleCombo(this, event)">▼</button>
+                        <div class="combo-dropdown"></div>
+                    </div>
+                    <input type="text" id="project-text" placeholder="Project tasks, notes, or descriptions...">
+                    <button class="action-btn" onclick="addContextualItem('projects', 'project-prop', 'project-text')">Add Project</button>
+                </div>
+            </div>
+
+            <div id="proj-oneoff" class="sub-tab-content default-sub-active"><div id="proj-oneoff-container"></div></div>
+            <div id="proj-current" class="sub-tab-content"><div id="proj-current-container"></div></div>
+            <div id="proj-upcoming" class="sub-tab-content"><div id="proj-upcoming-container"></div></div>
+            <div id="proj-major" class="sub-tab-content"><div id="proj-major-container"></div></div>
+        </div>
+
+        <!-- 3. WALK THROUGH PANELS -->
+        <div id="walkthrough" class="tab-content">
+            <div class="tab-header-block">
+                <h2>Manager Walk-Through Worksheets</h2>
+                <p>Property operational tasks synced with operations logs:</p>
+            </div>
+            <div class="inline-form">
+                <h4>Add Inspection Note</h4>
+                <div class="form-row">
+                    <div class="combobox-wrapper">
+                        <input type="text" id="walk-prop" class="combo-input" placeholder="Select property..." onclick="toggleCombo(this)" oninput="filterCombo(this)">
+                        <button class="combo-arrow" onclick="arrowToggleCombo(this, event)">▼</button>
+                        <div class="combo-dropdown"></div>
+                    </div>
+                    <input type="text" id="walk-text" placeholder="Walk-through instruction details...">
+                    <button class="action-btn" onclick="addCustomItem('walkthrough', 'walk-prop', 'walk-text')">Record Walk</button>
+                </div>
+            </div>
+            <div id="walkthrough-container"></div>
+        </div>
+
+        <!-- 4. SHOPPING TAB PANEL (WITH SUB-CATEGORIES) -->
+        <div id="shopping" class="tab-content">
+            <div class="sub-tabs-bar">
+                <button class="sub-tab-link active" onclick="openSubTab(event, 'shopping', 'shop-crew')">Crew List</button>
+                <button class="sub-tab-link" onclick="openSubTab(event, 'shopping', 'shop-steph')">Steph's List</button>
+            </div>
+
+            <div class="inline-form">
+                <h4>Add Procurement Demand</h4>
+                <div class="form-row">
+                    <div class="combobox-wrapper">
+                        <input type="text" id="shop-prop" class="combo-input" placeholder="Select property reference..." onclick="toggleCombo(this)" oninput="filterCombo(this)">
+                        <button class="combo-arrow" onclick="arrowToggleCombo(this, event)">▼</button>
+                        <div class="combo-dropdown"></div>
+                    </div>
+                    <input type="text" id="shop-text" placeholder="Items, sizes, quantities, or materials...">
+                    <button class="action-btn" onclick="addContextualItem('shopping', 'shop-prop', 'shop-text')">Add to List</button>
+                </div>
+            </div>
+
+            <div id="shop-crew" class="sub-tab-content default-sub-active"><div id="shop-crew-container"></div></div>
+            <div id="shop-steph" class="sub-tab-content"><div id="shop-steph-container"></div></div>
+        </div>
+
     </div>
 
     <script src="app.js"></script>
