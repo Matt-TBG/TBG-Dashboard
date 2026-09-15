@@ -89,17 +89,27 @@ function handleSheetData(items) {
         const subCategories = ['overview', 'proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'walkthrough', 'shop-crew', 'shop-steph'];
         const counts = { projects: 0, walkthrough: 0, shopping: 0 };
         
+        // Clear all layout containers safely on fresh data incoming
         subCategories.forEach(c => {
             const el = document.getElementById(`${c}-container`);
             if(el) el.innerHTML = '';
         });
-        document.getElementById('urgent-stream-container').innerHTML = '';
+        
+        const urgentStream = document.getElementById('urgent-stream-container');
+        if (urgentStream) urgentStream.innerHTML = '';
 
         let overviewCount = 0;
         let overviewHtml = '';
 
+        // THE RESTORED FOR-EACH FORMATTING LOOP WITH THE CONTAINER SAFETY CHECK
         items.forEach(item => {
             const cleanId = item.id || Math.random().toString(36).substring(2, 9);
+            
+            // Increment parent category navigation badges metrics dynamically
+            if (item.type.startsWith('proj-')) counts.projects++;
+            if (item.type === 'walkthrough') counts.walkthrough++;
+            if (item.type.startsWith('shop-')) counts.shopping++;
+
             const cardHtml = `
                 <div class="task-card ${item.type}-card" id="card-${cleanId}">
                     <div class="task-details">
@@ -110,29 +120,31 @@ function handleSheetData(items) {
                 </div>
             `;
 
-            // Sort out count arrays metrics dynamically
-            if (item.type.startsWith('proj-')) counts.projects++;
-            if (item.type === 'walkthrough') counts.walkthrough++;
-            if (item.type.startsWith('shop-')) counts.shopping++;
-
+            // SAFETY PROTECTION CHECK FIX: Verify layout element exists before innerHTML manipulations
             const container = document.getElementById(`${item.type}-container`);
-            if (container) container.innerHTML += cardHtml;
+            if (container) {
+                container.innerHTML += cardHtml;
+            }
 
-            // Overview priorities rule: pull overview items, walkthroughs, or the top items down to dashboard
+            // Overview priority dashboard calculations routing logic
             if (item.type === 'overview' || item.type === 'walkthrough' || overviewCount < 3) {
-                if (item.type !== 'shop-crew' && item.type !== 'shop-steph') {
+                if (!item.type.startsWith('shop-')) {
                     overviewHtml += cardHtml;
                     overviewCount++;
                 }
             }
         });
 
-        // Set navbar counters
-        document.getElementById('count-projects').innerText = counts.projects;
-        document.getElementById('count-walkthrough').innerText = counts.walkthrough;
-        document.getElementById('count-shopping').innerText = counts.shopping;
+        // Set navbar summary count counters badges layout strings safely
+        const countProjEl = document.getElementById('count-projects');
+        const countWalkEl = document.getElementById('count-walkthrough');
+        const countShopEl = document.getElementById('count-shopping');
+        
+        if (countProjEl) countProjEl.innerText = counts.projects;
+        if (countWalkEl) countWalkEl.innerText = counts.walkthrough;
+        if (countShopEl) countShopEl.innerText = counts.shopping;
 
-        // Visual placeholders checks
+        // Visual placeholders blank array status messages loops checks
         subCategories.forEach(c => {
             const container = document.getElementById(`${c}-container`);
             if(container && container.innerHTML === '') {
@@ -140,8 +152,9 @@ function handleSheetData(items) {
             }
         });
         
-        document.getElementById('urgent-stream-container').innerHTML = overviewHtml || 
-            '<div class="loading-placeholder">Dashboard operational clear. No tasks pending.</div>';
+        if (urgentStream) {
+            urgentStream.innerHTML = overviewHtml || '<div class="loading-placeholder">Dashboard operational clear. No tasks pending.</div>';
+        }
 
     } catch (error) {
         console.error("Layout routing fault trace:", error);
@@ -151,14 +164,26 @@ function handleSheetData(items) {
 function loadDashboard() {
     if (!API_URL || API_URL === "") return;
     
+    // 1. Trigger background script tag to pull live properties data tab mapping list
     const propScript = document.createElement('script');
     propScript.src = `${API_URL}?getData=properties&callback=handlePropertyOptions&nocache=${Date.now()}`;
     document.body.appendChild(propScript);
+
+    // 2. Trigger active task load script blocks
+    const subCategories = ['proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'walkthrough', 'shop-crew', 'shop-steph'];
+    subCategories.forEach(c => {
+        const container = document.getElementById(`${c}-container`);
+        if (container) container.innerHTML = '<div class="loading-placeholder">Syncing data...</div>';
+    });
+
+    const oldScript = document.getElementById('jsonp-script');
+    if (oldScript) oldScript.remove();
 
     const cacheWindow = Math.round(Date.now() / 5000);
     const script = document.createElement('script');
     script.id = 'jsonp-script';
     script.src = `${API_URL}?getData=tasks&callback=handleSheetData&nocache=${cacheWindow}`;
+    
     document.body.appendChild(script);
 }
 
@@ -186,6 +211,7 @@ async function executeFormPost(targetType, propId, textId) {
 
     document.getElementById(propId).value = '';
     document.getElementById(textId).value = '';
+    document.activeElement.blur(); // Dismiss mobile keyboards seamlessly
 
     try {
         await fetch(API_URL, {
@@ -214,8 +240,6 @@ async function removeCard(buttonElement, itemId) {
             body: JSON.stringify({ action: 'delete', id: itemId })
         });
     } catch (error) {
-        console.error("Delete sequence trace error:", error);
-    }
-}
+console.error("Delete sequence trace error:", error);}
 
-loadDashboard();
+}// Boot setup dashboard execution loading loopsloadDashboard();
