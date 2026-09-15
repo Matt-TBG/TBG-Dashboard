@@ -326,14 +326,15 @@
             setTimeout(() => card.remove(), 400);
 
             try {
+                // 👇 Put mode: 'no-cors' back to stop the cosmetic browser error
                 await fetch(API_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
+                    mode: 'no-cors', 
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'delete', id: itemId })
+                    body: JSON.stringify(payload)
                 });
             } catch (error) {
-                console.error("Network removal trace:", error);
+                console.error("Network sending trace:", error);
             }
         }
 
