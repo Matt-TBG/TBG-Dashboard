@@ -86,8 +86,8 @@ function handlePropertyOptions(properties) {
 
 function handleSheetData(items) {
     try {
-        const subCategories = ['overview', 'proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'walkthrough', 'shop-crew', 'shop-steph'];
-        const counts = { projects: 0, walkthrough: 0, shopping: 0 };
+        const subCategories = ['overview', 'proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'issue', 'walkthrough', 'shop-crew', 'shop-steph'];
+        const counts = { projects: 0, issue: 0, walkthrough: 0, shopping: 0 };
         
         // Clear all layout containers safely on fresh data incoming
         subCategories.forEach(c => {
@@ -101,12 +101,12 @@ function handleSheetData(items) {
         let overviewCount = 0;
         let overviewHtml = '';
 
-        // THE RESTORED FOR-EACH FORMATTING LOOP WITH THE CONTAINER SAFETY CHECK
         items.forEach(item => {
             const cleanId = item.id || Math.random().toString(36).substring(2, 9);
             
             // Increment parent category navigation badges metrics dynamically
             if (item.type.startsWith('proj-')) counts.projects++;
+            if (item.type === 'issue') counts.issue++;
             if (item.type === 'walkthrough') counts.walkthrough++;
             if (item.type.startsWith('shop-')) counts.shopping++;
 
@@ -120,14 +120,14 @@ function handleSheetData(items) {
                 </div>
             `;
 
-            // SAFETY PROTECTION CHECK FIX: Verify layout element exists before innerHTML manipulations
+            // Verify layout element exists before innerHTML manipulations
             const container = document.getElementById(`${item.type}-container`);
             if (container) {
                 container.innerHTML += cardHtml;
             }
 
             // Overview priority dashboard calculations routing logic
-            if (item.type === 'overview' || item.type === 'walkthrough' || overviewCount < 3) {
+            if (item.type === 'overview' || item.type === 'issue' || item.type === 'walkthrough' || overviewCount < 3) {
                 if (!item.type.startsWith('shop-')) {
                     overviewHtml += cardHtml;
                     overviewCount++;
@@ -137,10 +137,12 @@ function handleSheetData(items) {
 
         // Set navbar summary count counters badges layout strings safely
         const countProjEl = document.getElementById('count-projects');
+        const countIssueEl = document.getElementById('count-issue');
         const countWalkEl = document.getElementById('count-walkthrough');
         const countShopEl = document.getElementById('count-shopping');
         
         if (countProjEl) countProjEl.innerText = counts.projects;
+        if (countIssueEl) countIssueEl.innerText = counts.issue;
         if (countWalkEl) countWalkEl.innerText = counts.walkthrough;
         if (countShopEl) countShopEl.innerText = counts.shopping;
 
@@ -170,7 +172,7 @@ function loadDashboard() {
     document.body.appendChild(propScript);
 
     // 2. Trigger active task load script blocks
-    const subCategories = ['proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'walkthrough', 'shop-crew', 'shop-steph'];
+    const subCategories = ['proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'issue', 'walkthrough', 'shop-crew', 'shop-steph'];
     subCategories.forEach(c => {
         const container = document.getElementById(`${c}-container`);
         if (container) container.innerHTML = '<div class="loading-placeholder">Syncing data...</div>';
@@ -236,10 +238,4 @@ async function removeCard(buttonElement, itemId) {
         await fetch(API_URL, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'delete', id: itemId })
-        });
-    } catch (error) {
-console.error("Delete sequence trace error:", error);}
-
-}// Boot setup dashboard execution loading loopsloadDashboard();
+headers: { 'Content-Type': 'text/plain;charset=utf-8' },body: JSON.stringify({ action: 'delete', id: itemId })});} catch (error) {console.error("Delete sequence trace error:", error);}}// Boot setup dashboard execution loading loopsloadDashboard();
