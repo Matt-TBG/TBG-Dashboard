@@ -220,21 +220,13 @@
 
     </div>
 
-    <script>
+        <script>
         // 1. PLACE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE (Must end in /exec)
-        const API_URL = "https://script.google.com/macros/s/AKfycbxn56upwqD-Z2hdcPYdnd7YqzS5inVcaVBs5VK9ReHcbI0uS0Vnxs70r4H5F5efnjKh6Q/exec";
+        const API_URL = "https://google.com";
 
-        // Fetch and load data dynamically in real time
-        async function loadDashboard() {
-            // Fixes the safety block that was preventing data retrieval
-            if (!API_URL || API_URL === "") return;
-            
+        // JSONP Callback handler: Automatically picks up the spreadsheet records passed by Google
+        function handleSheetData(items) {
             try {
-                const freshUrl = `${API_URL}?nocache=${Date.now()}`;
-                
-                const response = await fetch(freshUrl);
-                const items = await response.json();
-                
                 // Clear the layout columns before inserting updated data
                 document.getElementById('todo-container').innerHTML = '';
                 document.getElementById('updates-container').innerHTML = '';
@@ -258,8 +250,25 @@
                     if (item.type === 'shopping') document.getElementById('shopping-container').innerHTML += cardHtml;
                 });
             } catch (error) {
-                console.error("Error loading dashboard data:", error);
+                console.error("Error processing text data layouts:", error);
             }
+        }
+
+        // Fetch data dynamically in real time bypassing CORS via JSONP scripting tags
+        function loadDashboard() {
+            if (!API_URL || API_URL === "") return;
+            
+            // Remove older checking tags if they exist on the page
+            const oldScript = document.getElementById('jsonp-script');
+            if (oldScript) oldScript.remove();
+
+            // Create a temporary script element to request the data payload safely
+            const script = document.createElement('script');
+            script.id = 'jsonp-script';
+            script.src = `${API_URL}?callback=handleSheetData&nocache=${Date.now()}`;
+            
+            // Inject to execute the data load pull loop
+            document.body.appendChild(script);
         }
 
         // Send a newly submitted row from the form down to Google Sheets
@@ -340,4 +349,5 @@
         // Initialize script on startup
         loadDashboard();
     </script>
-
+</body>
+</html>
