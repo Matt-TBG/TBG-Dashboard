@@ -1,5 +1,5 @@
 // 1. YOUR GOOGLE APPS SCRIPT WEB APP URL (Must end in /exec)
-const API_URL = "https://script.google.com/macros/s/AKfycbyOm02wepjqjwNJua6Jv8fgIAYCv86EjmhuvKbllPDd2_9Cri2i4rF5lbb3sosJZI3yRQ/exec";
+const API_URL = "https://google.com";
 
 // FRONTEND INTERACTIVE TAB NAVIGATOR TOGGLE
 function openTab(evt, tabName) {
@@ -15,13 +15,25 @@ function openTab(evt, tabName) {
     evt.currentTarget.className += " active";
 }
 
-// JSONP DATA RECEIVER: PROCESSES 6 CATEGORIES & OVERVIEW FEED
+// DATA RECEIVER 1: POPULATES DYNAMIC AUTOCOMPLETE DROPDOWN OPTIONS
+function handlePropertyOptions(properties) {
+    try {
+        const datalist = document.getElementById('properties-dataset');
+        if (!datalist) return;
+        
+        // Render property item block strings
+        datalist.innerHTML = properties.map(prop => `<option value="${prop}"></option>`).join('');
+    } catch (error) {
+        console.error("Error setting up filter list:", error);
+    }
+}
+
+// DATA RECEIVER 2: PROCESSES 6 CATEGORIES & OVERVIEW FEED
 function handleSheetData(items) {
     try {
         const types = ['oneoff', 'issue', 'currentproject', 'bigproject', 'walkthrough', 'shopping'];
         const counts = { oneoff: 0, issue: 0, currentproject: 0, bigproject: 0, walkthrough: 0, shopping: 0 };
         
-        // Clear all layout divs
         types.forEach(t => document.getElementById(`${t}-container`).innerHTML = '');
         document.getElementById('urgent-stream-container').innerHTML = '';
 
@@ -30,8 +42,6 @@ function handleSheetData(items) {
 
         items.forEach(item => {
             const cleanId = item.id || Math.random().toString(36).substring(2, 9);
-            
-            // Increment category counter values
             if (counts[item.type] !== undefined) counts[item.type]++;
 
             const cardHtml = `
@@ -44,18 +54,15 @@ function handleSheetData(items) {
                 </div>
             `;
 
-            // Append cards to their corresponding tab container
             const container = document.getElementById(`${item.type}-container`);
             if (container) container.innerHTML += cardHtml;
 
-            // OVERVIEW STRATEGY ROUTING: Send issues and the first 3 tasks straight to the landing hero element
             if ((item.type === 'issue' || urgentCount < 3) && item.type !== 'shopping') {
                 urgentCardsHtml += cardHtml;
                 urgentCount++;
             }
         });
 
-        // Set text notification indicators inside the navigation menu tags
         types.forEach(t => {
             document.getElementById(`count-${t}`).innerText = counts[t];
             const container = document.getElementById(`${t}-container`);
@@ -64,7 +71,6 @@ function handleSheetData(items) {
             }
         });
 
-        // Populate Overview feed panel
         document.getElementById('urgent-stream-container').innerHTML = urgentCardsHtml || 
             '<div class="loading-placeholder">System clear! No urgent items requiring priority attention.</div>';
 
@@ -73,10 +79,20 @@ function handleSheetData(items) {
     }
 }
 
-// FETCH REAL-TIME PULL CHANGES VIA THE TIMED 5-SECOND VALIDATION PIPELINE
+// MAIN PULL LOADING CONTROLLER: TRIGGERS BOTH DYNAMIC FETCH CHANNELS
 function loadDashboard() {
     if (!API_URL || API_URL === "") return;
     
+    // 1. Trigger background script tag to pull live properties data tab mapping list
+    const oldPropScript = document.getElementById('jsonp-properties-script');
+    if (oldPropScript) oldPropScript.remove();
+    
+    const propScript = document.createElement('script');
+    propScript.id = 'jsonp-properties-script';
+    propScript.src = `${API_URL}?getData=properties&callback=handlePropertyOptions&nocache=${Date.now()}`;
+    document.body.appendChild(propScript);
+
+    // 2. Trigger active task load script blocks
     const types = ['oneoff', 'issue', 'currentproject', 'bigproject', 'walkthrough', 'shopping'];
     types.forEach(t => {
         const container = document.getElementById(`${t}-container`);
@@ -89,7 +105,7 @@ function loadDashboard() {
     const cacheWindow = Math.round(Date.now() / 5000);
     const script = document.createElement('script');
     script.id = 'jsonp-script';
-    script.src = `${API_URL}?callback=handleSheetData&nocache=${cacheWindow}`;
+    script.src = `${API_URL}?getData=tasks&callback=handleSheetData&nocache=${cacheWindow}`;
     
     document.body.appendChild(script);
 }
@@ -108,9 +124,29 @@ async function addItem() {
     const cleanId = Math.random().toString(36).substring(2, 9);
     const payload = { action: 'add', id: cleanId, property: property, text: text, type: type };
 
-    // Reset forms immediately
     document.getElementById('property-input').value = '';
     document.getElementById('task-input').value = '';
+
+    // Wipe autocomplete input focus state natively after submission to clean mobile keyboard layouts
+    document.activeElement.blur();
+
+    const targetContainerId = `${type}-container`;
+    const cardHtml = `
+        <div class="task-card ${type}-card" id="card-${cleanId}">
+            <div class="task-details">
+                <div class="property-name">${property}</div>
+                <div class="task-text">${text}</div>
+            </div>
+            <button class="done-btn" onclick="removeCard(this, '${cleanId}')">Complete</button>
+        </div>
+    `;
+    
+    const currentUiHtml = document.getElementById(targetContainerId).innerHTML;
+    if (currentUiHtml.includes("loading-placeholder") || currentUiHtml.includes("Loading")) {
+        document.getElementById(targetContainerId).innerHTML = cardHtml;
+    } else {
+        document.getElementById(targetContainerId).innerHTML += cardHtml;
+    }
 
     try {
         await fetch(API_URL, {
@@ -119,9 +155,7 @@ async function addItem() {
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
         });
-        
-        // Immediate fetch callback loops
-        setTimeout(loadDashboard, 1200);
+        setTimeout(loadDashboard, 1500);
     } catch (error) {
         console.error("Transmission fault:", error);
     }
@@ -151,4 +185,3 @@ async function removeCard(buttonElement, itemId) {
 
 // Boot setup
 loadDashboard();
-
