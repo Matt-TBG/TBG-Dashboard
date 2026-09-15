@@ -1,109 +1,114 @@
 // 1. YOUR GOOGLE APPS SCRIPT WEB APP URL (Must end in /exec)
 const API_URL = "https://script.google.com/macros/s/AKfycbyOm02wepjqjwNJua6Jv8fgIAYCv86EjmhuvKbllPDd2_9Cri2i4rF5lbb3sosJZI3yRQ/exec";
 
-// JSONP Callback handler: Automatically picks up the spreadsheet records passed by Google
+// FRONTEND INTERACTIVE TAB NAVIGATOR TOGGLE
+function openTab(evt, tabName) {
+    const tabcontents = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < tabcontents.length; i++) {
+        tabcontents[i].style.display = "none";
+    }
+    const tablinks = document.getElementsByClassName("tab-link");
+    for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+
+// JSONP DATA RECEIVER: PROCESSES 6 CATEGORIES & OVERVIEW FEED
 function handleSheetData(items) {
     try {
-        // Clear placeholder text layout wrappers
-        document.getElementById('todo-container').innerHTML = '';
-        document.getElementById('updates-container').innerHTML = '';
-        document.getElementById('shopping-container').innerHTML = '';
+        const types = ['oneoff', 'issue', 'currentproject', 'bigproject', 'walkthrough', 'shopping'];
+        const counts = { oneoff: 0, issue: 0, currentproject: 0, bigproject: 0, walkthrough: 0, shopping: 0 };
+        
+        // Clear all layout divs
+        types.forEach(t => document.getElementById(`${t}-container`).innerHTML = '');
+        document.getElementById('urgent-stream-container').innerHTML = '';
 
-        // Loop through your list items and place them into columns based on their type
+        let urgentCardsHtml = '';
+        let urgentCount = 0;
+
         items.forEach(item => {
             const cleanId = item.id || Math.random().toString(36).substring(2, 9);
+            
+            // Increment category counter values
+            if (counts[item.type] !== undefined) counts[item.type]++;
+
             const cardHtml = `
                 <div class="task-card ${item.type}-card" id="card-${cleanId}">
                     <div class="task-details">
                         <div class="property-name">${item.property}</div>
                         <div class="task-text">${item.text}</div>
                     </div>
-                    <button class="done-btn ${item.type}-btn" onclick="removeCard(this, '${cleanId}')">Complete</button>
+                    <button class="done-btn" onclick="removeCard(this, '${cleanId}')">Complete</button>
                 </div>
             `;
 
-            if (item.type === 'todo') document.getElementById('todo-container').innerHTML += cardHtml;
-            if (item.type === 'updates') document.getElementById('updates-container').innerHTML += cardHtml;
-            if (item.type === 'shopping') document.getElementById('shopping-container').innerHTML += cardHtml;
+            // Append cards to their corresponding tab container
+            const container = document.getElementById(`${item.type}-container`);
+            if (container) container.innerHTML += cardHtml;
+
+            // OVERVIEW STRATEGY ROUTING: Send issues and the first 3 tasks straight to the landing hero element
+            if ((item.type === 'issue' || urgentCount < 3) && item.type !== 'shopping') {
+                urgentCardsHtml += cardHtml;
+                urgentCount++;
+            }
         });
+
+        // Set text notification indicators inside the navigation menu tags
+        types.forEach(t => {
+            document.getElementById(`count-${t}`).innerText = counts[t];
+            const container = document.getElementById(`${t}-container`);
+            if (counts[t] === 0 && container) {
+                container.innerHTML = '<div class="loading-placeholder">No active items in this category.</div>';
+            }
+        });
+
+        // Populate Overview feed panel
+        document.getElementById('urgent-stream-container').innerHTML = urgentCardsHtml || 
+            '<div class="loading-placeholder">System clear! No urgent items requiring priority attention.</div>';
+
     } catch (error) {
-        console.error("Error processing data layout arrays:", error);
+        console.error("Error organizing tab array collections:", error);
     }
 }
 
-// Fetch data dynamically in real time bypassing CORS via JSONP scripting tags
+// FETCH REAL-TIME PULL CHANGES VIA THE TIMED 5-SECOND VALIDATION PIPELINE
 function loadDashboard() {
     if (!API_URL || API_URL === "") return;
     
-    // Inject cleaner loading textual placeholders onto columns immediately on refresh trigger
-    document.getElementById('todo-container').innerHTML = '<div class="loading-placeholder">Loading live tasks...</div>';
-    document.getElementById('updates-container').innerHTML = '<div class="loading-placeholder">Loading live updates...</div>';
-    document.getElementById('shopping-container').innerHTML = '<div class="loading-placeholder">Loading shopping list...</div>';
+    const types = ['oneoff', 'issue', 'currentproject', 'bigproject', 'walkthrough', 'shopping'];
+    types.forEach(t => {
+        const container = document.getElementById(`${t}-container`);
+        if (container) container.innerHTML = '<div class="loading-placeholder">Syncing data...</div>';
+    });
 
     const oldScript = document.getElementById('jsonp-script');
     if (oldScript) oldScript.remove();
 
-    // Reduced cache validation window to 5 seconds to bypass infinite stuck loading conditions on manual reloads
     const cacheWindow = Math.round(Date.now() / 5000);
-
     const script = document.createElement('script');
     script.id = 'jsonp-script';
     script.src = `${API_URL}?callback=handleSheetData&nocache=${cacheWindow}`;
     
-    // Safety fallback handler: If script tag execution hangs or fails, clear columns after 4 seconds
-    script.onerror = function() {
-        console.error("Data pipeline connection timeout trace.");
-        document.getElementById('todo-container').innerHTML = '<div class="loading-placeholder">No active tasks.</div>';
-        document.getElementById('updates-container').innerHTML = '<div class="loading-placeholder">No active updates.</div>';
-        document.getElementById('shopping-container').innerHTML = '<div class="loading-placeholder">No active items.</div>';
-    };
-    
     document.body.appendChild(script);
 }
 
-// Send a newly submitted row from the form down to Google Sheets
+// WRITE DATA SUBMISSIONS ROUTING PAYLOAD DOWN TO GOOGLE SHEETS
 async function addItem() {
     const property = document.getElementById('property-input').value.trim();
     const text = document.getElementById('task-input').value.trim();
     const type = document.getElementById('column-select').value;
 
     if (!property || !text) {
-        alert("Please fill out both the Property Name and Details.");
+        alert("Please specify the Property and Task text.");
         return;
     }
 
     const cleanId = Math.random().toString(36).substring(2, 9);
-    const payload = {
-        action: 'add',
-        id: cleanId,
-        property: property,
-        text: text,
-        type: type
-    };
+    const payload = { action: 'add', id: cleanId, property: property, text: text, type: type };
 
-    // Optimistic Update: Instantly put the item on the web UI layout so the user sees it immediately
-    const targetContainerId = `${type}-container`;
-    
-    // Clean column items layout wrappers without fallback icons
-    const cardHtml = `
-        <div class="task-card ${type}-card" id="card-${cleanId}">
-            <div class="task-details">
-                <div class="property-name">${property}</div>
-                <div class="task-text">${text}</div>
-            </div>
-            <button class="done-btn ${type}-btn" onclick="removeCard(this, '${cleanId}')">Complete</button>
-        </div>
-    `;
-    
-    // Check if the container is currently holding placeholder text, clear it out first if it is
-    const currentUiHtml = document.getElementById(targetContainerId).innerHTML;
-    if (currentUiHtml.includes("loading-placeholder") || currentUiHtml.includes("Loading")) {
-        document.getElementById(targetContainerId).innerHTML = cardHtml;
-    } else {
-        document.getElementById(targetContainerId).innerHTML += cardHtml;
-    }
-
-    // Reset UI inputs
+    // Reset forms immediately
     document.getElementById('property-input').value = '';
     document.getElementById('task-input').value = '';
 
@@ -115,22 +120,21 @@ async function addItem() {
             body: JSON.stringify(payload)
         });
         
-        // Fast sync verification pingback call loop
-        setTimeout(loadDashboard, 1500);
+        // Immediate fetch callback loops
+        setTimeout(loadDashboard, 1200);
     } catch (error) {
-        console.error("Network sending trace:", error);
+        console.error("Transmission fault:", error);
     }
 }
 
-// Remove card from UI and flag it inside the Google Sheet data pipeline
+// REMOVE ROW ITEM INSTANTLY WITH A TRANSITION EXIT ANIMATION EFFECT
 async function removeCard(buttonElement, itemId) {
     const card = buttonElement.closest('.task-card');
-    buttonElement.innerText = "Processing...";
+    buttonElement.innerText = "Syncing...";
     buttonElement.style.backgroundColor = "#888";
 
-    // Visual removal
     card.style.opacity = '0';
-    card.style.transform = 'scale(0.95)';
+    card.style.transform = 'scale(0.96)';
     setTimeout(() => card.remove(), 400);
 
     try {
@@ -141,9 +145,10 @@ async function removeCard(buttonElement, itemId) {
             body: JSON.stringify({ action: 'delete', id: itemId })
         });
     } catch (error) {
-        console.error("Network removal trace:", error);
+        console.error("Removal verification failure:", error);
     }
 }
 
-// Initialize script on startup
+// Boot setup
 loadDashboard();
+
