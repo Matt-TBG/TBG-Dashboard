@@ -4,6 +4,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyOm02wepjqjwNJua6Jv8fg
 // Master list arrays cached locally for interface filters
 let globalProperties = [];
 let activeSubTabs = { projects: "proj-oneoff", shopping: "shop-crew" };
+const pendingSubmissions = new Map();
+let pendingRefreshTimer = null;
 
 // MAIN PARENT TAB NAVIGATION ROUTING
 function openMainTab(evt, tabName) {
@@ -99,7 +101,11 @@ function handleSheetData(items) {
         });
         
         const urgentStream = document.getElementById('urgent-stream-container');
-        if (urgentStream) urgentStream.innerHTML = '';
+        if (urgentStream) {
+    urgentStream.innerHTML = overviewHtml || '<div class="loading-placeholder">Dashboard operational clear. No tasks pending.</div>';
+}
+
+checkPendingSubmissions(items);
 
         let overviewCount = 0;
         let overviewHtml = '';
@@ -185,7 +191,7 @@ function loadDashboard() {
     const oldScript = document.getElementById('jsonp-script');
     if (oldScript) oldScript.remove();
 
-    const cacheWindow = Math.round(Date.now() / 5000);
+    const cacheWindow = Date.now();
     const script = document.createElement('script');
     script.id = 'jsonp-script';
     script.src = `${API_URL}?getData=tasks&callback=handleSheetData&nocache=${cacheWindow}`;
@@ -204,31 +210,171 @@ function addContextualItem(parentTabKey, propInputId, textInputId) {
 }
 
 async function executeFormPost(targetType, propId, textId) {
-    const property = document.getElementById(propId).value.trim();
-    const text = document.getElementById(textId).value.trim();
+    const propertyInput = document.getElementById(propId);
+    const textInput = document.getElementById(textId);
+
+    const property = propertyInput.value.trim();
+    const text = textInput.value.trim();
 
     if (!property || !text) {
-        alert("Please complete both properties and tasks descriptions fields.");
+        alert("Please complete both the property and task description.");
         return;
     }
 
-    const cleanId = Math.random().toString(36).substring(2, 9);
-    const payload = { action: 'add', id: cleanId, property: property, text: text, type: targetType };
+    const formRow = textInput.closest('.form-row');
+    const button = formRow.querySelector('.action-btn');
+    const form = formRow.closest('.inline-form');
 
-    document.getElementById(propId).value = '';
-    document.getElementById(textId).value = '';
-    document.activeElement.blur(); 
+    // Create a status message area if this form does not have one yet
+    let status = form.querySelector('.form-status');
+
+    if (!status) {
+        status = document.createElement('div');
+        status.className = 'form-status';
+        form.appendChild(status);
+    }
+
+    // Keep original button wording so we can restore it later
+    const originalButtonText = button.innerText;
+
+    // Generate unique ID
+    const cleanId = crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2, 12);
+
+    const payload = {
+        action: 'add',
+        id: cleanId,
+        property: property,
+        text: text,
+        type: targetType
+    };
+
+    // Lock this form while saving
+    propertyInput.disabled = true;
+    textInput.disabled = true;
+    button.disabled = true;
+
+    button.innerText = "Submitting...";
+    status.className = "form-status saving";
+    status.innerText = "Saving to Google Sheets...";
+
+    // DO NOT clear the fields yet.
+    // We only clear them once Google sends the new item back to us.
+    pendingSubmissions.set(cleanId, {
+        propertyInput,
+        textInput,
+        button,
+        status,
+        originalButtonText,
+        startedAt: Date.now()
+    });
 
     try {
         await fetch(API_URL, {
             method: 'POST',
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
             body: JSON.stringify(payload)
         });
-        setTimeout(loadDashboard, 1500);
+
+        button.innerText = "Submitted ✓";
+        status.className = "form-status syncing";
+        status.innerText = "Submitted — waiting for dashboard sync...";
+
+        schedulePendingRefresh();
+
     } catch (error) {
         console.error("Posting data error:", error);
+
+        pendingSubmissions.delete(cleanId);
+
+        propertyInput.disabled = false;
+        textInput.disabled = false;
+        button.disabled = false;
+        button.innerText = originalButtonText;
+
+        status.className = "form-status error";
+        status.innerText = "Could not submit. Please try again.";
+    }
+}
+
+function schedulePendingRefresh() {
+    if (pendingRefreshTimer) return;
+
+    pendingRefreshTimer = setTimeout(() => {
+        pendingRefreshTimer = null;
+        loadDashboard();
+    }, 600);
+}
+
+
+function checkPendingSubmissions(items) {
+    if (pendingSubmissions.size === 0) return;
+
+    const returnedIds = new Set(
+        items.map(item => String(item.id).trim())
+    );
+
+    let stillWaiting = false;
+
+    pendingSubmissions.forEach((pending, id) => {
+
+        // SUCCESS:
+        // Google Sheets has returned the exact item we submitted.
+        if (returnedIds.has(id)) {
+
+            pending.propertyInput.value = '';
+            pending.textInput.value = '';
+
+            pending.propertyInput.disabled = false;
+            pending.textInput.disabled = false;
+            pending.button.disabled = false;
+
+            pending.button.innerText = pending.originalButtonText;
+
+            pending.status.className = "form-status success";
+            pending.status.innerText = "✓ Added and synced";
+
+            pendingSubmissions.delete(id);
+
+            // Put cursor back into the property field
+            pending.propertyInput.focus();
+
+            // Remove success message after a moment
+            setTimeout(() => {
+                pending.status.innerText = '';
+                pending.status.className = 'form-status';
+            }, 2500);
+
+            return;
+        }
+
+        // Keep checking for up to 15 seconds
+        if (Date.now() - pending.startedAt < 15000) {
+            stillWaiting = true;
+        } else {
+
+            // We can't confidently say the POST failed because no-cors
+            // prevents us from reading the POST response.
+            pending.propertyInput.disabled = false;
+            pending.textInput.disabled = false;
+            pending.button.disabled = false;
+
+            pending.button.innerText = pending.originalButtonText;
+
+            pending.status.className = "form-status error";
+            pending.status.innerText =
+                "Still waiting for Google Sheets. Your entry has been left in the form.";
+
+            pendingSubmissions.delete(id);
+        }
+    });
+
+    if (stillWaiting) {
+        schedulePendingRefresh();
     }
 }
 
