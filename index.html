@@ -13,9 +13,14 @@
         <p>Operations Control Center</p>
     </div>
 
-    <!-- RESTRUCTURED INPUT BAR WITH 6 OPTIONS -->
+    <!-- RESTRUCTURED COMPATIBLE INPUT BAR -->
     <div class="input-bar">
-        <input type="text" id="property-input" placeholder="Property Name (e.g. Beard, Oreck)">
+        <!-- The list attribute connects this input box to the dynamic autocomplete array below -->
+        <input type="text" id="property-input" list="properties-dataset" placeholder="Select or type property...">
+        <datalist id="properties-dataset">
+            <!-- JavaScript will automatically stream your Google Sheet locations right here -->
+        </datalist>
+        
         <input type="text" id="task-input" placeholder="Details/Description...">
         <select id="column-select">
             <option value="oneoff">One Off Tasks</option>
@@ -41,8 +46,6 @@
 
     <!-- VIEW PANELS -->
     <div class="dashboard-container">
-        
-        <!-- BASE OVERVIEW TAB CONTAINER -->
         <div id="summary" class="tab-content default-active">
             <div class="summary-hero">
                 <h2>Operational Alert Stream</h2>
@@ -50,38 +53,12 @@
                 <div id="urgent-stream-container"></div>
             </div>
         </div>
-
-        <!-- ISOLATED COLUMN TRACKERS -->
-        <div id="oneoff" class="tab-content">
-            <h2>One Off Tasks</h2>
-            <div id="oneoff-container"></div>
-        </div>
-
-        <div id="issue" class="tab-content">
-            <h2>Property Issues</h2>
-            <div id="issue-container"></div>
-        </div>
-
-        <div id="currentproject" class="tab-content">
-            <h2>Current &amp; Upcoming Projects</h2>
-            <div id="currentproject-container"></div>
-        </div>
-
-        <div id="bigproject" class="tab-content">
-            <h2>Big Projects</h2>
-            <div id="bigproject-container"></div>
-        </div>
-
-        <div id="walkthrough" class="tab-content">
-            <h2>Walk Through Sheets</h2>
-            <div id="walkthrough-container"></div>
-        </div>
-
-        <div id="shopping" class="tab-content">
-            <h2>Shopping List</h2>
-            <div id="shopping-container"></div>
-        </div>
-
+        <div id="oneoff" class="tab-content"><h2>One Off Tasks</h2><div id="oneoff-container"></div></div>
+        <div id="issue" class="tab-content"><h2>Property Issues</h2><div id="issue-container"></div></div>
+        <div id="currentproject" class="tab-content"><h2>Current &amp; Upcoming Projects</h2><div id="currentproject-container"></div></div>
+        <div id="bigproject" class="tab-content"><h2>Big Projects</h2><div id="bigproject-container"></div></div>
+        <div id="walkthrough" class="tab-content"><h2>Walk Through Sheets</h2><div id="walkthrough-container"></div></div>
+        <div id="shopping" class="tab-content"><h2>Shopping List</h2><div id="shopping-container"></div></div>
     </div>
 
     <script src="app.js"></script>
