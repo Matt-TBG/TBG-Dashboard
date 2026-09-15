@@ -298,17 +298,20 @@
             document.getElementById('task-input').value = '';
 
             try {
-                // By using 'no-cors', the text payload drops straight into the sheet securely 
-                // without waiting for Google's browser-blocked confirmation response text.
-                await fetch(API_URL, {
+                // 👇 We removed mode: 'no-cors' temporarily to expose the hidden error message
+                const response = await fetch(API_URL, {
                     method: 'POST',
-                    mode: 'no-cors', 
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
+                
+                // Read the response text coming back from Google
+                const resultText = await response.text();
+                console.log("Google Response Log:", resultText);
             } catch (error) {
                 console.error("Network sending trace:", error);
             }
+
         }
 
         // Remove card from UI and flag it inside the Google Sheet data pipeline
