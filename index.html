@@ -226,10 +226,10 @@
 
         // Fetch and load data dynamically in real time
         async function loadDashboard() {
-            if (!API_URL || API_URL.includes("https://script.google.com/macros/s/AKfycbxn56upwqD-Z2hdcPYdnd7YqzS5inVcaVBs5VK9ReHcbI0uS0Vnxs70r4H5F5efnjKh6Q/exec")) return;
+            // Fixes the safety block that was preventing data retrieval
+            if (!API_URL || API_URL === "") return;
             
             try {
-                // 👇 We add a dynamic random timestamp suffix to explicitly force Google to skip caches and pull real-time database changes
                 const freshUrl = `${API_URL}?nocache=${Date.now()}`;
                 
                 const response = await fetch(freshUrl);
@@ -340,3 +340,4 @@
         // Initialize script on startup
         loadDashboard();
     </script>
+
