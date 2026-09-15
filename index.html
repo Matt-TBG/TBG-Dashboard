@@ -221,87 +221,64 @@
     </div>
 
     <script>
-        // 1. PLACE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE 👇
-        const API_URL = "https://script.google.com/a/macros/tierrabellagardens.com/s/AKfycbxn56upwqD-Z2hdcPYdnd7YqzS5inVcaVBs5VK9ReHcbI0uS0Vnxs70r4H5F5efnjKh6Q/exec";
+ // Send a newly submitted row from the form down to Google Sheets
+async function addItem() {
+    const property = document.getElementById('property-input').value.trim();
+    const text = document.getElementById('task-input').value.trim();
+    const type = document.getElementById('column-select').value;
 
-        // Fetch and load data automatically when the dashboard opens
-        async function loadDashboard() {
-            if (API_URL === "https://script.google.com/a/macros/tierrabellagardens.com/s/AKfycbxn56upwqD-Z2hdcPYdnd7YqzS5inVcaVBs5VK9ReHcbI0uS0Vnxs70r4H5F5efnjKh6Q/exec") return;
-            
-            try {
-                const response = await fetch(API_URL);
-                const items = await response.json();
-                
-                // Clear the layout columns before inserting updated data
-                document.getElementById('todo-container').innerHTML = '';
-                document.getElementById('updates-container').innerHTML = '';
-                document.getElementById('shopping-container').innerHTML = '';
+    if (!property || !text) {
+        alert("Please fill out both the Property Name and Details.");
+        return;
+    }
 
-                // Loop through your list items and place them into columns based on their type
-                items.forEach(item => {
-                    const cardHtml = `
-                        <div class="task-card ${item.type}-card">
-                            <div class="task-details">
-                                <div class="property-name">${item.property}</div>
-                                <div class="task-text">${item.text}</div>
-                            </div>
-                            <button class="done-btn ${item.type}-btn" onclick="removeCard(this, '${item.id}')">✔ Complete</button>
-                        </div>
-                    `;
+    const payload = {
+        action: 'add',
+        property: property,
+        text: text,
+        type: type
+    };
 
-                    if (item.type === 'todo') document.getElementById('todo-container').innerHTML += cardHtml;
-                    if (item.type === 'updates') document.getElementById('updates-container').innerHTML += cardHtml;
-                    if (item.type === 'shopping') document.getElementById('shopping-container').innerHTML += cardHtml;
-                });
-            } catch (error) {
-                console.error("Error loading dashboard data:", error);
-            }
-        }
+    // Reset UI input fields immediately
+    document.getElementById('property-input').value = '';
+    document.getElementById('task-input').value = '';
 
-        // Send a newly submitted row from the form down to Google Sheets
-        async function addItem() {
-            const property = document.getElementById('property-input').value.trim();
-            const text = document.getElementById('task-input').value.trim();
-            const type = document.getElementById('column-select').value;
+    try {
+        await fetch(API_URL, {
+            method: 'POST',
+            // 👇 Changed from application/json to text/plain to bypass browser CORS blocks
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+            body: JSON.stringify(payload)
+        });
+        
+        // Reload dashboard UI after a small delay for sheet indexing
+        setTimeout(loadDashboard, 1500);
+    } catch (error) {
+        console.error("Error saving item:", error);
+    }
+}
 
-            if (!property || !text) {
-                alert("Please fill out both the Property Name and Details.");
-                return;
-            }
+// Remove card from UI and flag it inside the Google Sheet data pipeline
+async function removeCard(buttonElement, itemId) {
+    const card = buttonElement.closest('.task-card');
+    buttonElement.innerText = "Processing...";
+    buttonElement.style.backgroundColor = "#888";
 
-            const payload = {
-                action: 'add',
-                property: property,
-                text: text,
-                type: type
-            };
+    try {
+        await fetch(API_URL, {
+            method: 'POST',
+            // 👇 Changed here too
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'delete', id: itemId })
+        });
 
-            // Reset UI input fields immediately
-            document.getElementById('property-input').value = '';
-            document.getElementById('task-input').value = '';
+        // Smooth visual exit animation
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        setTimeout(() => card.remove(), 400);
+    } catch (error) {
+        console.error("Error deleting item:", error);
+        buttonElement.innerText = "✔ Complete";
+    }
+}
 
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                // Reload dashboard UI after a small delay for sheet indexing
-                setTimeout(loadDashboard, 1500);
-            } catch (error) {
-                console.error("Error saving item:", error);
-            }
-        }
-
-        // Remove card from UI and flag it inside the Google Sheet data pipeline
-        async function removeCard(buttonElement, itemId) {
-            const card = buttonElement.closest('.task-card');
-            buttonElement.innerText = "Processing...";
-            buttonElement.style.backgroundColor = "#888";
-
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
