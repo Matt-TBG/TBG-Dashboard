@@ -3,187 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tierra Bella Gardens - Demo Dashboard</title>
-    <style>
-        :root {
-            --primary-color: #2e7d32;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #666666;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            padding: 25px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .header h1 {
-            margin: 0 0 10px 0;
-            font-size: 2.2em;
-        }
-        
-        .header p {
-            margin: 0;
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        /* Form styling for adding new items */
-        .input-bar {
-            max-width: 1400px;
-            margin: 0 auto 30px auto;
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .input-bar input, .input-bar select, .input-bar button {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-        }
-
-        .input-bar input { flex: 2; min-width: 200px; }
-        .input-bar select { flex: 1; min-width: 150px; }
-        .input-bar button { 
-            flex: 1; 
-            min-width: 120px; 
-            background-color: var(--primary-color); 
-            color: white; 
-            font-weight: bold; 
-            cursor: pointer;
-            border: none;
-        }
-        .input-bar button:hover { background-color: #1b5e20; }
-
-        .dashboard-container {
-            display: flex;
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .column {
-            flex: 1;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .column-todo {
-            background: #e8f5e9;
-            border: 1px solid #c8e6c9;
-        }
-
-        .column-updates {
-            background: #e1f5fe;
-            border: 1px solid #b3e5fc;
-        }
-
-        .column-shopping {
-            background: #fff3e0;
-            border: 1px solid #ffe0b2;
-        }
-
-        .column h2 {
-            margin-top: 0;
-            border-bottom: 2px solid rgba(0,0,0,0.1);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .column-todo h2 { color: #2e7d32; }
-        .column-updates h2 { color: #0277bd; }
-        .column-shopping h2 { color: #e65100; }
-
-        .task-card {
-            background: var(--card-bg);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: opacity 0.4s ease, transform 0.4s ease;
-        }
-
-        .todo-card { border-left: 5px solid #2e7d32; }
-        .updates-card { border-left: 5px solid #0277bd; }
-        .shopping-card { border-left: 5px solid #ef6c00; }
-
-        .task-details {
-            flex-grow: 1;
-            padding-right: 15px;
-        }
-
-        .property-name {
-            display: inline-block;
-            background-color: #eeeeee;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.9em;
-            margin-bottom: 8px;
-            color: #444;
-        }
-
-        .task-text {
-            font-size: 1.05em;
-            line-height: 1.4;
-        }
-
-        .done-btn {
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            white-space: nowrap;
-            transition: background 0.2s;
-        }
-
-        .todo-btn { background-color: #2e7d32; }
-        .todo-btn:hover { background-color: #1b5e20; }
-
-        .updates-btn { background-color: #0277bd; }
-        .updates-btn:hover { background-color: #01579b; }
-
-        .shopping-btn { background-color: #ef6c00; }
-        .shopping-btn:hover { background-color: #e65100; }
-
-        @media (max-width: 900px) {
-            .dashboard-container {
-                flex-direction: column;
-            }
-        }
-    </style>
+    <title>Tierra Bella Gardens - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="header">
-        <h1>🌿 Tierra Bella Gardens 🌿</h1>
-        <p>Dashboard (Demo Version)</p>
+        <h1>Tierra Bella Gardens</h1>
+        <p>Dashboard Control</p>
     </div>
 
     <!-- NEW ITEM INPUT BAR -->
@@ -191,176 +18,36 @@
         <input type="text" id="property-input" placeholder="Property Name (e.g. Beard, Oreck)">
         <input type="text" id="task-input" placeholder="Details/Description...">
         <select id="column-select">
-            <option value="todo">📋 Property To-Do's</option>
-            <option value="updates">📢 Property Updates</option>
-            <option value="shopping">🛒 Shopping List</option>
+            <option value="todo">Property To-Do's</option>
+            <option value="updates">Property Updates</option>
+            <option value="shopping">Shopping List</option>
         </select>
-        <button onclick="addItem()">➕ Add Item</button>
+        <button onclick="addItem()">Add Item</button>
     </div>
 
     <div class="dashboard-container">
         
         <!-- TO-DO COLUMN -->
         <div class="column column-todo">
-            <h2>📋 Property To-Do's</h2>
+            <h2>Property To-Do's</h2>
             <div id="todo-container"></div>
         </div>
 
         <!-- UPDATES COLUMN -->
         <div class="column column-updates">
-            <h2>📢 Property Updates</h2>
+            <h2>Property Updates</h2>
             <div id="updates-container"></div>
         </div>
 
         <!-- SHOPPING LIST COLUMN -->
         <div class="column column-shopping">
-            <h2>🛒 Shopping List</h2>
+            <h2>Shopping List</h2>
             <div id="shopping-container"></div>
         </div>
 
     </div>
 
-            <script>
-        // 1. YOUR DEFINITIVE GOOGLE APPS SCRIPT WEB APP URL
-        const API_URL = "https://script.google.com/macros/s/AKfycbyOm02wepjqjwNJua6Jv8fgIAYCv86EjmhuvKbllPDd2_9Cri2i4rF5lbb3sosJZI3yRQ/exec";
-
-        // JSONP Callback handler: Automatically picks up the spreadsheet records passed by Google
-        function handleSheetData(items) {
-            try {
-                // Clear the layout columns before inserting updated data
-                document.getElementById('todo-container').innerHTML = '';
-                document.getElementById('updates-container').innerHTML = '';
-                document.getElementById('shopping-container').innerHTML = '';
-
-                // Loop through your list items and place them into columns based on their type
-                items.forEach(item => {
-                    const cleanId = item.id || Math.random().toString(36).substring(2, 9);
-                    const cardHtml = `
-                        <div class="task-card ${item.type}-card" id="card-${cleanId}">
-                            <div class="task-details">
-                                <div class="property-name">${item.property}</div>
-                                <div class="task-text">${item.text}</div>
-                            </div>
-                            <button class="done-btn ${item.type}-btn" onclick="removeCard(this, '${cleanId}')">✔ Complete</button>
-                        </div>
-                    `;
-
-                    if (item.type === 'todo') document.getElementById('todo-container').innerHTML += cardHtml;
-                    if (item.type === 'updates') document.getElementById('updates-container').innerHTML += cardHtml;
-                    if (item.type === 'shopping') document.getElementById('shopping-container').innerHTML += cardHtml;
-                });
-            } catch (error) {
-                console.error("Error processing data layouts:", error);
-            }
-        }
-
-        // Fetch data dynamically in real time bypassing CORS via JSONP scripting tags
-        function loadDashboard() {
-            if (!API_URL || API_URL === "") return;
-            
-            // 👇 VISUAL PLACEHOLDERS: Instantly tell the crew the system is working on startup
-            document.getElementById('todo-container').innerHTML = '<div style="color: #666; font-style: italic; padding: 10px;">⏳ Loading live tasks...</div>';
-            document.getElementById('updates-container').innerHTML = '<div style="color: #666; font-style: italic; padding: 10px;">⏳ Loading live updates...</div>';
-            document.getElementById('shopping-container').innerHTML = '<div style="color: #666; font-style: italic; padding: 10px;">⏳ Loading shopping list...</div>';
-
-            // Remove older script tags if they exist on the page to prevent memory leaking
-            const oldScript = document.getElementById('jsonp-script');
-            if (oldScript) oldScript.remove();
-
-            // Calculate the 15-second caching block parameter
-            const cacheWindow = Math.round(Date.now() / 15000);
-
-            // Create a temporary script element to request the data payload safely
-            const script = document.createElement('script');
-            script.id = 'jsonp-script';
-            script.src = `${API_URL}?callback=handleSheetData&nocache=${cacheWindow}`;
-            
-            // Inject to execute the data load pull loop
-            document.body.appendChild(script);
-        }
-
-
-
-        // Send a newly submitted row from the form down to Google Sheets
-        async function addItem() {
-            const property = document.getElementById('property-input').value.trim();
-            const text = document.getElementById('task-input').value.trim();
-            const type = document.getElementById('column-select').value;
-
-            if (!property || !text) {
-                alert("Please fill out both the Property Name and Details.");
-                return;
-            }
-
-            const cleanId = Math.random().toString(36).substring(2, 9);
-            const payload = {
-                action: 'add',
-                id: cleanId,
-                property: property,
-                text: text,
-                type: type
-            };
-
-            // Optimistic Update: Instantly put the item on the web UI layout so the user sees it immediately
-            const targetContainerId = `${type}-container`;
-            const cardHtml = `
-                <div class="task-card ${type}-card" id="card-${cleanId}">
-                    <div class="task-details">
-                        <div class="property-name">${property}</div>
-                        <div class="task-text">${text}</div>
-                    </div>
-                    <button class="done-btn ${type}-btn" onclick="removeCard(this, '${cleanId}')">✔ Complete</button>
-                </div>
-            `;
-            document.getElementById(targetContainerId).innerHTML += cardHtml;
-
-            // Reset UI inputs
-            document.getElementById('property-input').value = '';
-            document.getElementById('task-input').value = '';
-
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                
-                // Real-time synchronization fallback loop
-                setTimeout(loadDashboard, 2000);
-            } catch (error) {
-                console.error("Network sending trace:", error);
-            }
-        }
-
-        // Remove card from UI and flag it inside the Google Sheet data pipeline
-        async function removeCard(buttonElement, itemId) {
-            const card = buttonElement.closest('.task-card');
-            buttonElement.innerText = "Processing...";
-            buttonElement.style.backgroundColor = "#888";
-
-            // Visual removal
-            card.style.opacity = '0';
-            card.style.transform = 'scale(0.95)';
-            setTimeout(() => card.remove(), 400);
-
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'delete', id: itemId })
-                });
-            } catch (error) {
-                console.error("Network removal trace:", error);
-            }
-        }
-
-        // Initialize script on startup
-        loadDashboard();
-    </script>
-</body>
-</html>
-
+    <!-- LINK TO JAVASCRIPT LOGIC FILE -->
+    <script src="app.js"></script>
 </body>
 </html>
