@@ -10,44 +10,80 @@
 
     <div class="header">
         <h1>Tierra Bella Gardens</h1>
-        <p>Dashboard Control</p>
+        <p>Operations Control Center</p>
     </div>
 
-    <!-- NEW ITEM INPUT BAR -->
+    <!-- RESTRUCTURED INPUT BAR WITH 6 OPTIONS -->
     <div class="input-bar">
         <input type="text" id="property-input" placeholder="Property Name (e.g. Beard, Oreck)">
         <input type="text" id="task-input" placeholder="Details/Description...">
         <select id="column-select">
-            <option value="todo">Property To-Do's</option>
-            <option value="updates">Property Updates</option>
+            <option value="oneoff">One Off Tasks</option>
+            <option value="issue">Property Issues</option>
+            <option value="currentproject">Current/Upcoming Projects</option>
+            <option value="bigproject">Big Projects</option>
+            <option value="walkthrough">Walk Throughs</option>
             <option value="shopping">Shopping List</option>
         </select>
         <button onclick="addItem()">Add Item</button>
     </div>
 
+    <!-- DYNAMIC NAVIGATION TABS MENU -->
+    <div class="tabs-container">
+        <button class="tab-link active" onclick="openTab(event, 'summary')">Overview</button>
+        <button class="tab-link" onclick="openTab(event, 'oneoff')">One Offs <span id="count-oneoff" class="badge">0</span></button>
+        <button class="tab-link" onclick="openTab(event, 'issue')">Issues <span id="count-issue" class="badge-alert">0</span></button>
+        <button class="tab-link" onclick="openTab(event, 'currentproject')">Current Proj <span id="count-currentproject" class="badge">0</span></button>
+        <button class="tab-link" onclick="openTab(event, 'bigproject')">Big Proj <span id="count-bigproject" class="badge">0</span></button>
+        <button class="tab-link" onclick="openTab(event, 'walkthrough')">Walk Throughs <span id="count-walkthrough" class="badge">0</span></button>
+        <button class="tab-link" onclick="openTab(event, 'shopping')">Shopping <span id="count-shopping" class="badge">0</span></button>
+    </div>
+
+    <!-- VIEW PANELS -->
     <div class="dashboard-container">
         
-        <!-- TO-DO COLUMN -->
-        <div class="column column-todo">
-            <h2>Property To-Do's</h2>
-            <div id="todo-container"></div>
+        <!-- BASE OVERVIEW TAB CONTAINER -->
+        <div id="summary" class="tab-content default-active">
+            <div class="summary-hero">
+                <h2>Operational Alert Stream</h2>
+                <p class="summary-subtext">Highest priority items requiring crew attention:</p>
+                <div id="urgent-stream-container"></div>
+            </div>
         </div>
 
-        <!-- UPDATES COLUMN -->
-        <div class="column column-updates">
-            <h2>Property Updates</h2>
-            <div id="updates-container"></div>
+        <!-- ISOLATED COLUMN TRACKERS -->
+        <div id="oneoff" class="tab-content">
+            <h2>One Off Tasks</h2>
+            <div id="oneoff-container"></div>
         </div>
 
-        <!-- SHOPPING LIST COLUMN -->
-        <div class="column column-shopping">
+        <div id="issue" class="tab-content">
+            <h2>Property Issues</h2>
+            <div id="issue-container"></div>
+        </div>
+
+        <div id="currentproject" class="tab-content">
+            <h2>Current &amp; Upcoming Projects</h2>
+            <div id="currentproject-container"></div>
+        </div>
+
+        <div id="bigproject" class="tab-content">
+            <h2>Big Projects</h2>
+            <div id="bigproject-container"></div>
+        </div>
+
+        <div id="walkthrough" class="tab-content">
+            <h2>Walk Through Sheets</h2>
+            <div id="walkthrough-container"></div>
+        </div>
+
+        <div id="shopping" class="tab-content">
             <h2>Shopping List</h2>
             <div id="shopping-container"></div>
         </div>
 
     </div>
 
-    <!-- LINK TO JAVASCRIPT LOGIC FILE -->
     <script src="app.js"></script>
 </body>
 </html>
