@@ -13,10 +13,11 @@
         <p>Operations Control Center</p>
     </div>
 
-    <!-- MAIN HIGH LEVEL NAVIGATION TABS -->
+    <!-- MAIN HIGH LEVEL NAVIGATION TABS (Tiled cleanly for mobile viewports) -->
     <div class="tabs-container">
         <button class="tab-link active" onclick="openMainTab(event, 'summary')">Overview</button>
         <button class="tab-link" onclick="openMainTab(event, 'projects')">Projects <span id="count-projects" class="badge">0</span></button>
+        <button class="tab-link" onclick="openMainTab(event, 'issue')">Issues <span id="count-issue" class="badge-alert">0</span></button>
         <button class="tab-link" onclick="openMainTab(event, 'walkthrough')">Walk Throughs <span id="count-walkthrough" class="badge">0</span></button>
         <button class="tab-link" onclick="openMainTab(event, 'shopping')">Shopping Lists <span id="count-shopping" class="badge">0</span></button>
     </div>
@@ -30,7 +31,6 @@
                 <p>Prioritized items requiring immediate attention:</p>
             </div>
             
-            <!-- Quick Add form inside the Overview tab itself -->
             <div class="inline-form">
                 <h4>Quick Logging Entry</h4>
                 <div class="form-row">
@@ -55,7 +55,6 @@
                 <button class="sub-tab-link" onclick="openSubTab(event, 'projects', 'proj-major')">Major</button>
             </div>
 
-            <!-- Contextual Form for Projects Tab -->
             <div class="inline-form">
                 <h4>Add Project Entry</h4>
                 <div class="form-row">
@@ -75,7 +74,28 @@
             <div id="proj-major" class="sub-tab-content"><div id="proj-major-container"></div></div>
         </div>
 
-        <!-- 3. WALK THROUGH PANELS -->
+        <!-- 3. NEW INDEPENDENT ISSUES VIEW PANEL -->
+        <div id="issue" class="tab-content">
+            <div class="tab-header-block">
+                <h2>Property Issues &amp; Critical Hazards</h2>
+                <p>Reported property deficiencies requiring prompt field action:</p>
+            </div>
+            <div class="inline-form">
+                <h4>Report Property Issue</h4>
+                <div class="form-row">
+                    <div class="combobox-wrapper">
+                        <input type="text" id="issue-prop" class="combo-input" placeholder="Select property..." onclick="toggleCombo(this)" oninput="filterCombo(this)">
+                        <button class="combo-arrow" onclick="arrowToggleCombo(this, event)">▼</button>
+                        <div class="combo-dropdown"></div>
+                    </div>
+                    <input type="text" id="issue-text" placeholder="Describe the issue, broken equipment, hazard...">
+                    <button class="action-btn" onclick="addCustomItem('issue', 'issue-prop', 'issue-text')">Report Issue</button>
+                </div>
+            </div>
+            <div id="issue-container"></div>
+        </div>
+
+        <!-- 4. WALK THROUGH PANELS -->
         <div id="walkthrough" class="tab-content">
             <div class="tab-header-block">
                 <h2>Manager Walk-Through Worksheets</h2>
@@ -96,7 +116,7 @@
             <div id="walkthrough-container"></div>
         </div>
 
-        <!-- 4. SHOPPING TAB PANEL (WITH SUB-CATEGORIES) -->
+        <!-- 5. SHOPPING TAB PANEL -->
         <div id="shopping" class="tab-content">
             <div class="sub-tabs-bar">
                 <button class="sub-tab-link active" onclick="openSubTab(event, 'shopping', 'shop-crew')">Crew List</button>
