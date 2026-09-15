@@ -234,21 +234,36 @@ async function executeFormPost(targetType, propId, textId) {
 
 async function removeCard(buttonElement, itemId) {
     const card = buttonElement.closest('.task-card');
+
+    buttonElement.disabled = true;
     buttonElement.innerText = "Syncing...";
     card.style.opacity = '0';
-    setTimeout(() => card.remove(), 400);
 
     try {
         await fetch(API_URL, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'delete', id: itemId })
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                id: itemId
+            })
         });
-   } catch (error) {
+
+        setTimeout(() => {
+            loadDashboard();
+        }, 1000);
+
+    } catch (error) {
         console.error("Removal failure log:", error);
+
+        // Put the card back if the browser itself reports a failure
+        card.style.opacity = '1';
+        buttonElement.disabled = false;
+        buttonElement.innerText = "Complete";
     }
 }
-
 // Boot configuration
 loadDashboard();
