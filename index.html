@@ -254,23 +254,31 @@
             }
         }
 
-                // Fetch data dynamically in real time bypassing CORS via JSONP scripting tags
+        // Fetch data dynamically in real time bypassing CORS via JSONP scripting tags
         function loadDashboard() {
             if (!API_URL || API_URL === "") return;
             
+            // 👇 VISUAL PLACEHOLDERS: Instantly tell the crew the system is working on startup
+            document.getElementById('todo-container').innerHTML = '<div style="color: #666; font-style: italic; padding: 10px;">⏳ Loading live tasks...</div>';
+            document.getElementById('updates-container').innerHTML = '<div style="color: #666; font-style: italic; padding: 10px;">⏳ Loading live updates...</div>';
+            document.getElementById('shopping-container').innerHTML = '<div style="color: #666; font-style: italic; padding: 10px;">⏳ Loading shopping list...</div>';
+
+            // Remove older script tags if they exist on the page to prevent memory leaking
             const oldScript = document.getElementById('jsonp-script');
             if (oldScript) oldScript.remove();
 
-            // 👇 Math.round(Date.now() / 15000) lets Google cache results for 15 seconds.
-            // This stops your dashboard from spamming and locking out Google's server engine!
+            // Calculate the 15-second caching block parameter
             const cacheWindow = Math.round(Date.now() / 15000);
 
+            // Create a temporary script element to request the data payload safely
             const script = document.createElement('script');
             script.id = 'jsonp-script';
             script.src = `${API_URL}?callback=handleSheetData&nocache=${cacheWindow}`;
             
+            // Inject to execute the data load pull loop
             document.body.appendChild(script);
         }
+
 
 
         // Send a newly submitted row from the form down to Google Sheets
