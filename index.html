@@ -254,22 +254,24 @@
             }
         }
 
-        // Fetch data dynamically in real time bypassing CORS via JSONP scripting tags
+                // Fetch data dynamically in real time bypassing CORS via JSONP scripting tags
         function loadDashboard() {
-            // Remove older script tags if they exist on the page to prevent memory leaking
+            if (!API_URL || API_URL === "") return;
+            
             const oldScript = document.getElementById('jsonp-script');
             if (oldScript) oldScript.remove();
 
-            // Create a temporary script element to request the data payload safely
+            // 👇 Math.round(Date.now() / 15000) lets Google cache results for 15 seconds.
+            // This stops your dashboard from spamming and locking out Google's server engine!
+            const cacheWindow = Math.round(Date.now() / 15000);
+
             const script = document.createElement('script');
             script.id = 'jsonp-script';
+            script.src = `${API_URL}?callback=handleSheetData&nocache=${cacheWindow}`;
             
-            // 👇 Explicitly using the master API_URL here to guarantee it never pings google.com
-            script.src = `${API_URL}?callback=handleSheetData&nocache=${Date.now()}`;
-            
-            // Inject to execute the data load pull loop
             document.body.appendChild(script);
         }
+
 
         // Send a newly submitted row from the form down to Google Sheets
         async function addItem() {
