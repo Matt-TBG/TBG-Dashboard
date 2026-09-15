@@ -25,7 +25,6 @@ body {
 .header h1 { margin: 0; font-size: 1.8em; }
 .header p { margin: 5px 0 0 0; opacity: 0.9; }
 
-/* INLINE FORM HOOKS INSIDE TABS */
 .inline-form {
     background: #eef2f0;
     padding: 15px;
@@ -58,7 +57,6 @@ body {
     min-width: 110px;
 }
 
-/* CUSTOM SEARCHABLE SELECT COMBOBOX DROPDOWN RULES */
 .combobox-wrapper {
     position: relative;
     flex: 1;
@@ -110,36 +108,52 @@ body {
 }
 .combo-item:hover { background-color: #f4f7f6; }
 
-/* MASTER TAB CONTROLS */
-.tabs-container { max-width: 1200px; margin: 0 auto 15px auto; display: flex; gap: 8px; }
+/* 🌟 GRID UPGRADE: Automatically tiles buttons cleanly on mobile screen widths */
+.tabs-container {
+    max-width: 1200px;
+    margin: 0 auto 15px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+}
 .tab-link {
-    background-color: #e0e0e0; border: none; padding: 12px 18px;
-    cursor: pointer; border-radius: 6px; font-weight: 600; color: #555;
+    background-color: #e0e0e0;
+    border: none;
+    padding: 12px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #555;
+    text-align: center;
+    font-size: 0.9em;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .tab-link.active { background-color: var(--primary-color); color: white; }
 .badge { background-color: #777; color: white; font-size: 0.8em; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
+.tab-link.active .badge { background-color: rgba(255,255,255,0.3); }
+.badge-alert { background-color: var(--alert-color); color: white; font-size: 0.8em; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
 
 .dashboard-container { max-width: 1200px; margin: 0 auto; }
 .tab-content { display: none; background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 .tab-content.default-active { display: block; }
 
-/* CHILD/SUB TABS STYLE FORMATTING */
-.sub-tabs-bar { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e0e0e0; padding-bottom: 5px; }
-.sub-tab-link {
-    background: none; border: none; padding: 8px 14px; cursor: pointer;
-    font-weight: bold; color: #777; border-radius: 4px;
-}
+.sub-tabs-bar { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e0e0e0; padding-bottom: 5px; overflow-x: auto; }
+.sub-tab-link { background: none; border: none; padding: 8px 14px; cursor: pointer; font-weight: bold; color: #777; border-radius: 4px; white-space: nowrap; }
 .sub-tab-link.active { background-color: #e0e0e0; color: #222; }
 .sub-tab-content { display: none; }
 .sub-tab-content.default-sub-active { display: block; }
 
-/* CARDS DESIGN */
 .task-card { background: #f9f9f9; padding: 12px 15px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid #777; display: flex; justify-content: space-between; align-items: center; }
 .overview-card { border-left-color: #4cab50; }
 .proj-oneoff-card { border-left-color: #66bb6a; }
 .proj-current-card { border-left-color: #0288d1; }
 .proj-upcoming-card { border-left-color: #ab47bc; }
 .proj-major-card { border-left-color: #e91e63; }
+.issue-card { border-left-color: var(--alert-color); background: #fff5f5; }
 .walkthrough-card { border-left-color: #009688; }
 .shop-crew-card { border-left-color: #ff9800; }
 .shop-steph-card { border-left-color: #ff5722; }
@@ -152,6 +166,5 @@ body {
 
 @media (max-width: 768px) {
     .form-row { flex-direction: column; }
-    .tabs-container { flex-direction: row; overflow-x: auto; padding-bottom: 5px; }
-    .tab-link { white-space: nowrap; padding: 10px 14px; }
+    body { padding: 10px; }
 }
