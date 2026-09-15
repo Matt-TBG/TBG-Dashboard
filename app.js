@@ -245,5 +245,10 @@ async function removeCard(buttonElement, itemId) {
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'delete', id: itemId })
         });
-    } catch (error) {
-console.error("Removal failure log:", error);}}// Boot configurationloadDashboard();
+   } catch (error) {
+        console.error("Removal failure log:", error);
+    }
+}
+
+// Boot configuration
+loadDashboard();
