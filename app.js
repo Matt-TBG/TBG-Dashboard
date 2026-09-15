@@ -1,4 +1,4 @@
-// 1. YOUR GOOGLE APPS SCRIPT WEB APP URL (Must end in /exec)
+// 1. YOUR GOOGLE APPS SCRIPT WEB APP URL (Verified Link)
 const API_URL = "https://script.google.com/macros/s/AKfycbyOm02wepjqjwNJua6Jv8fgIAYCv86EjmhuvKbllPDd2_9Cri2i4rF5lbb3sosJZI3yRQ/exec";
 
 // Master list arrays cached locally for interface filters
@@ -16,7 +16,6 @@ function openMainTab(evt, tabName) {
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
     
-    // Close dropdown drawers globally on view migration shifts
     closeAllCombos();
 }
 
@@ -34,7 +33,7 @@ function openSubTab(evt, parentId, subTabId) {
     activeSubTabs[parentId] = subTabId;
 }
 
-// SEARCHABLE COMBOBOX CONTROLLER TRIGGERS
+// SEARCHABLE COMBOBOX DROPDOWN PROCESSING SCRIPTS
 function toggleCombo(inputEl) {
     closeAllCombos();
     const dropdown = inputEl.parentElement.querySelector(".combo-dropdown");
@@ -60,7 +59,7 @@ function renderComboItems(dropdown, list, inputEl) {
         dropdown.innerHTML = '<div class="combo-item" style="color:#888; font-style:italic;">No matches found</div>';
         return;
     }
-    dropdown.innerHTML = list.map(item => `<div class="combo-item" onclick="selectComboItem('${item}', '${inputEl.id}')">${item}</div>`).join('');
+    dropdown.innerHTML = list.map(item => `<div class="combo-item" onclick="selectComboItem('${item.replace(/'/g, "\\'")}', '${inputEl.id}')">${item}</div>`).join('');
 }
 
 function selectComboItem(value, inputId) {
@@ -74,14 +73,18 @@ function closeAllCombos() {
     for(let i=0; i<drawers.length; i++) drawers[i].style.display = "none";
 }
 
-// Global click event to snap dropdown drawers shut when users click off canvas boundaries
 document.addEventListener("click", function(e) {
     if(!e.target.closest(".combobox-wrapper")) closeAllCombos();
 });
 
-// JSONP INBOUND RECEIVERS
+// JSONP CHANNEL DATA RECEIVERS
 function handlePropertyOptions(properties) {
     globalProperties = properties;
+    // Safely update open combo lists if a dropdown happens to be active during load
+    const activeInput = document.activeElement;
+    if (activeInput && activeInput.classList.contains('combo-input')) {
+        filterCombo(activeInput);
+    }
 }
 
 function handleSheetData(items) {
@@ -89,7 +92,7 @@ function handleSheetData(items) {
         const subCategories = ['overview', 'proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'issue', 'walkthrough', 'shop-crew', 'shop-steph'];
         const counts = { projects: 0, issue: 0, walkthrough: 0, shopping: 0 };
         
-        // Clear all layout containers safely on fresh data incoming
+        // Wipe UI containers cleanly before rendering data stream
         subCategories.forEach(c => {
             const el = document.getElementById(`${c}-container`);
             if(el) el.innerHTML = '';
@@ -104,7 +107,7 @@ function handleSheetData(items) {
         items.forEach(item => {
             const cleanId = item.id || Math.random().toString(36).substring(2, 9);
             
-            // Increment parent category navigation badges metrics dynamically
+            // Map counter configurations dynamically
             if (item.type.startsWith('proj-')) counts.projects++;
             if (item.type === 'issue') counts.issue++;
             if (item.type === 'walkthrough') counts.walkthrough++;
@@ -120,13 +123,13 @@ function handleSheetData(items) {
                 </div>
             `;
 
-            // Verify layout element exists before innerHTML manipulations
+            // Safety check container existence before innerHTML push
             const container = document.getElementById(`${item.type}-container`);
             if (container) {
                 container.innerHTML += cardHtml;
             }
 
-            // Overview priority dashboard calculations routing logic
+            // Overview Dashboard feed generation rules
             if (item.type === 'overview' || item.type === 'issue' || item.type === 'walkthrough' || overviewCount < 3) {
                 if (!item.type.startsWith('shop-')) {
                     overviewHtml += cardHtml;
@@ -135,18 +138,18 @@ function handleSheetData(items) {
             }
         });
 
-        // Set navbar summary count counters badges layout strings safely
-        const countProjEl = document.getElementById('count-projects');
-        const countIssueEl = document.getElementById('count-issue');
-        const countWalkEl = document.getElementById('count-walkthrough');
-        const countShopEl = document.getElementById('count-shopping');
+        // Push calculated badges numbers onto menu titles
+        const cProj = document.getElementById('count-projects');
+        const cIss = document.getElementById('count-issue');
+        const cWalk = document.getElementById('count-walkthrough');
+        const cShop = document.getElementById('count-shopping');
         
-        if (countProjEl) countProjEl.innerText = counts.projects;
-        if (countIssueEl) countIssueEl.innerText = counts.issue;
-        if (countWalkEl) countWalkEl.innerText = counts.walkthrough;
-        if (countShopEl) countShopEl.innerText = counts.shopping;
+        if (cProj) cProj.innerText = counts.projects;
+        if (cIss) cIss.innerText = counts.issue;
+        if (cWalk) cWalk.innerText = counts.walkthrough;
+        if (cShop) cShop.innerText = counts.shopping;
 
-        // Visual placeholders blank array status messages loops checks
+        // Render localized empty register fallback elements
         subCategories.forEach(c => {
             const container = document.getElementById(`${c}-container`);
             if(container && container.innerHTML === '') {
@@ -159,19 +162,20 @@ function handleSheetData(items) {
         }
 
     } catch (error) {
-        console.error("Layout routing fault trace:", error);
+        console.error("Layout engine error trace:", error);
     }
 }
 
+// TIMED LOADING EXECUTION MAPPING LOOPS
 function loadDashboard() {
     if (!API_URL || API_URL === "") return;
     
-    // 1. Trigger background script tag to pull live properties data tab mapping list
+    // Channel 1: dynamic background script to grab dynamic properties list mapping
     const propScript = document.createElement('script');
     propScript.src = `${API_URL}?getData=properties&callback=handlePropertyOptions&nocache=${Date.now()}`;
     document.body.appendChild(propScript);
 
-    // 2. Trigger active task load script blocks
+    // Channel 2: load system task arrays data parameters
     const subCategories = ['proj-oneoff', 'proj-current', 'proj-upcoming', 'proj-major', 'issue', 'walkthrough', 'shop-crew', 'shop-steph'];
     subCategories.forEach(c => {
         const container = document.getElementById(`${c}-container`);
@@ -189,13 +193,13 @@ function loadDashboard() {
     document.body.appendChild(script);
 }
 
-// ROUTE SPECIFIC INTERNAL TAB ACTIONS SUBMISSIONS
+// SUBMISSIONS PIPELINES ROUTERS
 function addCustomItem(typeKey, propInputId, textInputId) {
     executeFormPost(typeKey, propInputId, textInputId);
 }
 
 function addContextualItem(parentTabKey, propInputId, textInputId) {
-    const contextualType = activeSubTabs[parentTabKey]; // Resolves active filter subtab (e.g., 'proj-current')
+    const contextualType = activeSubTabs[parentTabKey];
     executeFormPost(contextualType, propInputId, textInputId);
 }
 
@@ -213,7 +217,7 @@ async function executeFormPost(targetType, propId, textId) {
 
     document.getElementById(propId).value = '';
     document.getElementById(textId).value = '';
-    document.activeElement.blur(); // Dismiss mobile keyboards seamlessly
+    document.activeElement.blur(); 
 
     try {
         await fetch(API_URL, {
@@ -224,7 +228,7 @@ async function executeFormPost(targetType, propId, textId) {
         });
         setTimeout(loadDashboard, 1500);
     } catch (error) {
-        console.error("Posting array error:", error);
+        console.error("Posting data error:", error);
     }
 }
 
@@ -238,4 +242,8 @@ async function removeCard(buttonElement, itemId) {
         await fetch(API_URL, {
             method: 'POST',
             mode: 'no-cors',
-headers: { 'Content-Type': 'text/plain;charset=utf-8' },body: JSON.stringify({ action: 'delete', id: itemId })});} catch (error) {console.error("Delete sequence trace error:", error);}}// Boot setup dashboard execution loading loopsloadDashboard();
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'delete', id: itemId })
+        });
+    } catch (error) {
+console.error("Removal failure log:", error);}}// Boot configurationloadDashboard();
